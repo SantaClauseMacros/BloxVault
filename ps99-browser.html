@@ -1,0 +1,2246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>PS99 Item Browser</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg:       #0d0f14;
+  --bg2:      #13151c;
+  --bg3:      #1a1d27;
+  --surface:  #1e2130;
+  --surface2: #252840;
+  --border:   rgba(255,255,255,0.07);
+  --border2:  rgba(255,255,255,0.12);
+  --accent:   #a78bfa;
+  --accent2:  #7c3aed;
+  --pink:     #f472b6;
+  --cyan:     #22d3ee;
+  --green:    #4ade80;
+  --gold:     #fbbf24;
+  --text:     #f1f5f9;
+  --text2:    #94a3b8;
+  --text3:    #475569;
+  --radius:   16px; --radius-sm:10px; --pill:999px;
+  --shadow:   0 4px 24px rgba(0,0,0,.4);
+  --shadow-lg:0 12px 48px rgba(0,0,0,.6);
+  --glow:     0 0 20px rgba(167,139,250,.18);
+}
+html { scroll-behavior:smooth; }
+body { background:var(--bg); color:var(--text); font-family:'Inter',sans-serif; font-size:14px; min-height:100vh; overflow-x:hidden; }
+#root { max-width:1400px; margin:0 auto; padding:0 24px 64px; }
+
+/* ── HEADER ── */
+header { display:flex; align-items:center; justify-content:space-between; padding:24px 0 20px; flex-wrap:wrap; gap:12px; }
+.logo { display:flex; align-items:center; gap:12px; }
+.logo-icon { width:40px; height:40px; border-radius:12px; background:linear-gradient(135deg,var(--accent2),var(--pink)); display:flex; align-items:center; justify-content:center; font-size:19px; box-shadow:0 4px 16px rgba(124,58,237,.45); }
+.logo-text { font-weight:800; font-size:20px; color:var(--text); letter-spacing:-.3px; }
+.logo-text span { background:linear-gradient(90deg,var(--accent),var(--pink)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+.header-meta { font-size:11px; font-weight:600; color:var(--text2); background:var(--surface); border:1px solid var(--border2); border-radius:var(--pill); padding:6px 14px; letter-spacing:.02em; }
+
+/* ── MAIN PANEL ── */
+.main-panel { background:var(--bg2); border:1px solid var(--border); border-radius:20px; padding:24px; }
+.collections-title { font-weight:800; font-size:18px; color:var(--text); margin-bottom:18px; letter-spacing:-.2px; }
+
+/* ── CONTROLS ── */
+.controls { display:flex; gap:10px; margin-bottom:20px; flex-wrap:wrap; align-items:center; }
+.search-wrap { position:relative; flex:1; min-width:200px; }
+.search-wrap svg { position:absolute; left:13px; top:50%; transform:translateY(-50%); color:var(--text3); pointer-events:none; }
+input[type="text"] { width:100%; height:42px; padding:0 14px 0 40px; background:var(--surface); border:1px solid var(--border2); border-radius:var(--pill); color:var(--text); font-family:'Inter',sans-serif; font-size:13px; font-weight:500; outline:none; transition:border-color .2s,box-shadow .2s; }
+input[type="text"]::placeholder { color:var(--text3); }
+input[type="text"]:focus { border-color:var(--accent); box-shadow:0 0 0 3px rgba(167,139,250,.15); }
+select { height:42px; padding:0 14px; background:var(--surface); border:1px solid var(--border2); border-radius:var(--pill); color:var(--text); font-family:'Inter',sans-serif; font-size:13px; font-weight:500; outline:none; cursor:pointer; min-width:170px; transition:border-color .2s; }
+select option { background:var(--surface); }
+select:focus { border-color:var(--accent); }
+.count-badge { font-size:12px; font-weight:600; color:var(--text3); white-space:nowrap; }
+
+/* ── TABS ── */
+.tabs-label { font-size:10px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:var(--text3); margin-bottom:10px; }
+.tabs-scroll { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:22px; }
+.tab { padding:6px 14px; border-radius:var(--pill); border:1px solid var(--border2); background:var(--surface); color:var(--text2); font-family:'Inter',sans-serif; font-size:12px; font-weight:600; cursor:pointer; transition:all .15s; white-space:nowrap; }
+.tab:hover { border-color:var(--accent); color:var(--accent); background:rgba(167,139,250,.08); }
+.tab.active { background:linear-gradient(135deg,var(--accent2),var(--accent)); border-color:transparent; color:#fff; box-shadow:0 4px 14px rgba(124,58,237,.35); }
+
+/* ── GRID ── */
+#grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(136px,1fr)); gap:10px; }
+.card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:16px 10px 13px; display:flex; flex-direction:column; align-items:center; gap:9px; cursor:pointer; transition:border-color .18s,transform .15s,box-shadow .18s; text-align:center; animation:fadeIn .2s ease both; }
+.card:hover { border-color:var(--accent); transform:translateY(-3px); box-shadow:0 8px 28px rgba(167,139,250,.18); }
+@keyframes fadeIn { from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:none;} }
+.card-img { width:72px; height:72px; border-radius:var(--radius-sm); background:var(--bg3); overflow:hidden; display:flex; align-items:center; justify-content:center; border:1px solid var(--border2); }
+.card-img img { width:100%; height:100%; object-fit:contain; }
+.ph { font-size:26px; opacity:.25; }
+.card-name { font-size:11px; font-weight:600; color:var(--text); line-height:1.35; word-break:break-word; }
+.card-badge { font-size:9.5px; font-weight:700; padding:2px 8px; border-radius:var(--pill); background:var(--surface2); border:1px solid var(--border2); color:var(--text2); }
+.card-badge.huge { background:rgba(244,114,182,.12); border-color:rgba(244,114,182,.35); color:var(--pink); }
+.card-badge.exclusive,.card-badge.legendary { background:rgba(251,191,36,.1); border-color:rgba(251,191,36,.3); color:var(--gold); }
+.card-badge.secret { background:rgba(167,139,250,.1); border-color:rgba(167,139,250,.3); color:var(--accent); }
+
+.state-box { grid-column:1/-1; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:64px 20px; gap:12px; color:var(--text3); font-size:13px; font-weight:600; }
+.spinner { width:32px; height:32px; border:3px solid var(--surface2); border-top-color:var(--accent); border-radius:50%; animation:spin .7s linear infinite; }
+@keyframes spin { to{transform:rotate(360deg);} }
+
+/* ── DETAIL PAGE ── */
+#detail-page { display:none; position:fixed; inset:0; background:var(--bg); z-index:100; overflow-y:auto; padding:24px; animation:slideIn .2s ease; }
+#detail-page.open { display:flex; flex-direction:column; align-items:center; min-height:100vh; }
+@keyframes slideIn { from{opacity:0;transform:translateY(14px);}to{opacity:1;transform:none;} }
+.detail-wrap { max-width:1000px; width:100%; margin:0 auto; padding-bottom:48px; }
+.detail-wrap.wide { max-width:1120px; }
+.detail-back { display:inline-flex; align-items:center; gap:8px; background:var(--surface); border:1px solid var(--border2); border-radius:var(--pill); padding:8px 18px; color:var(--text2); font-weight:700; font-size:12px; cursor:pointer; margin-bottom:16px; transition:all .15s; }
+.detail-back:hover { border-color:var(--accent); color:var(--accent); }
+#detail-inner { background:var(--bg2); border:1px solid var(--border); border-radius:18px; box-shadow:var(--shadow-lg); overflow:hidden; }
+
+/* ── MODAL BAR ── */
+.modal-bar { display:flex; align-items:center; gap:12px; padding:18px 20px 16px; border-bottom:1px solid var(--border); }
+.modal-bar-title { font-weight:800; font-size:17px; color:var(--text); flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; letter-spacing:-.2px; }
+.modal-bar-sub { font-size:11px; font-weight:700; color:var(--text3); background:var(--surface); border:1px solid var(--border2); border-radius:var(--pill); padding:3px 10px; }
+.modal-bar-actions { display:flex; gap:8px; align-items:center; flex-shrink:0; }
+.btn-icon { width:32px; height:32px; border-radius:9px; border:none; display:flex; align-items:center; justify-content:center; cursor:pointer; font-weight:900; transition:transform .15s,opacity .15s; }
+.btn-icon:hover { transform:scale(1.08); opacity:.85; }
+.btn-json { background:var(--accent2); color:#fff; font-size:10px; }
+.json-panel { display:none; margin:0 20px 14px; background:#080a0f; border:1px solid var(--border); border-radius:12px; padding:14px; max-height:250px; overflow-y:auto; }
+.json-panel.open { display:block; }
+.json-panel pre { font-size:10px; color:#64748b; font-family:'Courier New',monospace; white-space:pre-wrap; word-break:break-all; line-height:1.65; }
+
+/* ── SECTION HEADER ── */
+.section-header { font-weight:800; font-size:13px; color:var(--text); display:flex; align-items:center; gap:9px; margin-bottom:14px; }
+.section-header::before { content:''; display:block; width:3px; height:16px; background:linear-gradient(180deg,var(--accent),var(--pink)); border-radius:3px; }
+
+/* ── EGG MODAL ── */
+.egg-body { display:flex; }
+.egg-left { width:240px; flex-shrink:0; padding:20px; border-right:1px solid var(--border); display:flex; flex-direction:column; align-items:center; }
+.egg-img-wrap { width:120px; height:120px; border-radius:16px; background:var(--bg3); overflow:hidden; display:flex; align-items:center; justify-content:center; border:1px solid var(--border2); box-shadow:0 0 30px rgba(167,139,250,.15); margin-bottom:14px; }
+.egg-img-wrap img,.pet-img-wrap img,.pet-golden-img img,.generic-img-wrap img { width:100%; height:100%; object-fit:contain; }
+.egg-name { font-weight:800; font-size:13px; text-align:center; color:var(--text); text-transform:uppercase; letter-spacing:.06em; margin-bottom:8px; }
+.egg-cat { font-size:10px; font-weight:700; padding:3px 10px; border-radius:var(--pill); background:rgba(167,139,250,.12); border:1px solid rgba(167,139,250,.3); color:var(--accent); margin-bottom:14px; }
+.egg-fields { width:100%; display:flex; flex-direction:column; }
+.egg-field { display:flex; justify-content:space-between; align-items:center; padding:7px 0; border-bottom:1px solid var(--border); font-size:12px; }
+.egg-field:last-child { border-bottom:none; }
+.egg-field-k { color:var(--text3); font-weight:600; }
+.egg-field-v { font-weight:700; color:var(--text); }
+.egg-field-v.gold   { color:var(--gold); }
+.egg-field-v.purple { color:var(--accent); }
+.egg-field-v.green  { color:var(--green); }
+.egg-tags { display:flex; flex-wrap:wrap; gap:5px; margin-top:12px; justify-content:center; }
+.etag { font-size:9.5px; font-weight:700; padding:3px 9px; border-radius:var(--pill); border:1px solid; white-space:nowrap; }
+.etag-gold   { background:rgba(251,191,36,.1);  border-color:rgba(251,191,36,.3);  color:var(--gold); }
+.etag-rb     { background:rgba(244,114,182,.1); border-color:rgba(244,114,182,.3); color:var(--pink); }
+.etag-mod    { background:rgba(167,139,250,.1); border-color:rgba(167,139,250,.3); color:var(--accent); }
+.etag-custom { background:rgba(34,211,238,.1);  border-color:rgba(34,211,238,.3);  color:var(--cyan); }
+.egg-right { flex:1; padding:20px; min-width:0; }
+
+.pets-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(108px,1fr)); gap:9px; }
+.pet-card { background:var(--surface); border:1px solid var(--border); border-radius:12px; display:flex; flex-direction:column; align-items:center; gap:7px; padding:11px 8px 9px; position:relative; text-align:center; transition:border-color .15s,transform .15s; }
+.pet-card:hover { border-color:var(--accent); transform:translateY(-2px); }
+.chance-badge { position:absolute; top:-1px; right:-1px; background:var(--surface2); color:var(--text2); font-size:9px; font-weight:700; padding:3px 7px; border-radius:0 10px 0 8px; white-space:nowrap; border:1px solid var(--border2); }
+.chance-badge.rare  { background:rgba(167,139,250,.2); border-color:rgba(167,139,250,.4); color:var(--accent); }
+.chance-badge.ultra { background:rgba(244,114,182,.2); border-color:rgba(244,114,182,.4); color:var(--pink); }
+.pet-card-img { width:64px; height:64px; border-radius:9px; background:var(--bg3); overflow:hidden; display:flex; align-items:center; justify-content:center; border:1px solid var(--border); }
+.pet-card-img img { width:100%; height:100%; object-fit:contain; }
+.pet-card-name { font-size:10px; font-weight:600; color:var(--text); line-height:1.3; word-break:break-word; }
+
+/* ── PET MODAL ── */
+.pet-body { display:flex; }
+.pet-left { width:200px; flex-shrink:0; padding:20px 16px 20px 20px; border-right:1px solid var(--border); display:flex; flex-direction:column; gap:14px; }
+.pet-img-wrap { width:158px; height:158px; border-radius:16px; background:var(--bg3); overflow:hidden; display:flex; align-items:center; justify-content:center; border:1px solid var(--border2); box-shadow:var(--glow); }
+.pet-golden-label { font-size:10px; font-weight:700; color:var(--text3); margin-bottom:6px; }
+.pet-golden-img { width:136px; height:136px; border-radius:14px; background:rgba(251,191,36,.08); overflow:hidden; display:flex; align-items:center; justify-content:center; border:1px solid rgba(251,191,36,.3); box-shadow:0 4px 16px rgba(251,191,36,.1); }
+.pet-right { flex:1; padding:20px; min-width:0; display:flex; flex-direction:column; gap:14px; }
+.pet-stat-row { display:flex; gap:9px; }
+.pet-stat-box { flex:1; background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:11px 13px; }
+.pet-stat-label { font-size:9px; font-weight:700; letter-spacing:.07em; text-transform:uppercase; color:var(--text3); margin-bottom:4px; }
+.pet-stat-value { font-size:24px; font-weight:800; color:var(--text); }
+.pet-tags { display:flex; flex-wrap:wrap; gap:6px; }
+.ptag { font-size:11px; font-weight:700; padding:5px 12px; border-radius:var(--pill); border:1px solid; white-space:nowrap; }
+.ptag-green  { background:rgba(74,222,128,.1);  border-color:rgba(74,222,128,.3);  color:var(--green); }
+.ptag-blue   { background:rgba(34,211,238,.1);  border-color:rgba(34,211,238,.3);  color:var(--cyan); }
+.ptag-pink   { background:rgba(244,114,182,.1); border-color:rgba(244,114,182,.3); color:var(--pink); }
+.ptag-gold   { background:rgba(251,191,36,.1);  border-color:rgba(251,191,36,.3);  color:var(--gold); }
+.ptag-purple { background:rgba(167,139,250,.1); border-color:rgba(167,139,250,.3); color:var(--accent); }
+.pet-desc-box { background:rgba(251,191,36,.06); border-left:3px solid var(--gold); border-radius:0 10px 10px 0; padding:11px 13px; font-size:12px; font-weight:500; font-style:italic; color:#d4a017; line-height:1.55; }
+.pet-tech { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:13px; }
+.pet-tech-title { font-size:9px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--text3); margin-bottom:8px; }
+.pet-tech-row { font-size:12px; font-weight:500; color:var(--text2); padding:3px 0; }
+.pet-tech-row span { color:var(--text); font-weight:700; }
+
+/* ── GENERIC MODAL ── */
+.generic-modal { max-width:460px; }
+.generic-body { padding:20px 22px 22px; }
+.generic-img-wrap { width:96px; height:96px; margin:0 auto 16px; border-radius:16px; background:var(--bg3); overflow:hidden; display:flex; align-items:center; justify-content:center; border:1px solid var(--border2); box-shadow:var(--glow); }
+.generic-sub { text-align:center; font-size:11px; font-weight:600; color:var(--text3); margin-bottom:16px; }
+.g-divider { height:1px; background:var(--border); margin-bottom:13px; }
+.g-field { display:flex; justify-content:space-between; align-items:flex-start; gap:12px; padding:7px 0; border-bottom:1px solid var(--border); }
+.g-field:last-child { border-bottom:none; }
+.g-key { color:var(--text3); font-weight:600; flex-shrink:0; font-size:11.5px; }
+.g-val { color:var(--text); font-weight:600; text-align:right; word-break:break-word; max-width:250px; font-size:11.5px; }
+.g-true  { color:var(--green); font-weight:700; }
+.g-false { color:#f87171; font-weight:700; }
+.ntable { width:100%; border-collapse:collapse; }
+.ntable td { padding:2px 5px 2px 0; font-size:10px; vertical-align:top; }
+.ntable td:first-child { color:var(--text3); font-weight:700; font-size:9px; text-transform:uppercase; white-space:nowrap; padding-right:8px; }
+
+/* ── CURRENCY MODAL ── */
+.currency-modal { max-width:700px; }
+.currency-header { display:flex; align-items:center; gap:16px; padding:20px; border-bottom:1px solid var(--border); }
+.currency-icon-wrap { width:76px; height:76px; border-radius:16px; background:rgba(251,191,36,.08); overflow:hidden; display:flex; align-items:center; justify-content:center; border:1px solid rgba(251,191,36,.3); box-shadow:0 4px 20px rgba(251,191,36,.12); flex-shrink:0; }
+.currency-icon-wrap img { width:100%; height:100%; object-fit:contain; }
+.currency-meta-name { font-weight:800; font-size:19px; color:var(--text); }
+.currency-meta-desc { font-size:12px; font-weight:500; color:var(--text2); margin-top:4px; font-style:italic; }
+.currency-tier-row td { padding:10px 14px; border-bottom:1px solid var(--border); vertical-align:middle; }
+.currency-tier-row:last-child td { border-bottom:none; }
+.currency-tier-row:hover td { background:rgba(255,255,255,.02); }
+.currency-tier-img { width:34px; height:34px; border-radius:8px; background:var(--bg3); overflow:hidden; display:flex; align-items:center; justify-content:center; border:1px solid var(--border); }
+.currency-tier-img img { width:100%; height:100%; object-fit:contain; }
+.currency-orb-img  { width:46px; height:46px; border-radius:10px; background:var(--bg3); overflow:hidden; display:flex; align-items:center; justify-content:center; border:1px solid var(--border); }
+.currency-orb-img img  { width:100%; height:100%; object-fit:contain; }
+
+.modal-body { padding:0 20px 22px; }
+.modal-section { margin-top:20px; }
+.modal-section-title { font-weight:700; font-size:11px; letter-spacing:.09em; text-transform:uppercase; color:var(--text3); margin-bottom:12px; display:flex; align-items:center; gap:8px; }
+.modal-section-title::after { content:''; flex:1; height:1px; background:var(--border); }
+
+/* ── INFO GRID ── */
+.info-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(130px,1fr)); gap:9px; }
+.info-box { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:11px 13px; }
+.info-box-label { font-size:9px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--text3); margin-bottom:5px; }
+.info-box-value { font-size:20px; font-weight:800; color:var(--text); }
+.info-box-value.sm { font-size:13px; }
+
+/* ── ITEM PILL ── */
+.items-wrap { display:flex; flex-wrap:wrap; gap:6px; }
+.item-pill { display:inline-flex; align-items:center; gap:5px; background:var(--surface); border:1px solid var(--border2); border-radius:var(--pill); padding:4px 10px; font-size:11.5px; font-weight:600; color:var(--text); white-space:nowrap; }
+.item-pill .t { color:var(--accent); font-size:9.5px; font-weight:700; }
+.item-pill .a { color:var(--green); font-size:10px; font-weight:700; }
+.item-pill .p { color:var(--pink); font-size:9.5px; }
+
+/* ── RANK MODAL ── */
+.rank-modal { max-width:1100px; }
+.rank-body { display:flex; min-height:400px; }
+.rank-left { width:210px; flex-shrink:0; padding:20px 16px; border-right:1px solid var(--border); display:flex; flex-direction:column; }
+.rank-left-title { font-weight:800; font-size:11px; text-transform:uppercase; letter-spacing:.1em; color:var(--text3); margin-bottom:16px; text-align:center; }
+.rank-stat { text-align:center; padding:11px 0; border-bottom:1px solid var(--border); }
+.rank-stat:last-child { border-bottom:none; }
+.rank-stat-label { font-size:9px; font-weight:700; text-transform:uppercase; letter-spacing:.08em; color:var(--text3); margin-bottom:4px; }
+.rank-stat-value { font-size:22px; font-weight:800; color:var(--text); line-height:1; }
+.rank-stat-value.sm { font-size:13px; }
+.rank-right { flex:1; padding:20px; overflow-y:auto; }
+.rank-right-section { margin-bottom:20px; }
+.rank-right-section-title { font-size:9.5px; font-weight:700; text-transform:uppercase; letter-spacing:.1em; color:var(--text3); margin-bottom:11px; }
+.rank-reward-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(88px,1fr)); gap:9px; }
+.rank-reward-card { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:10px 8px 8px; display:flex; flex-direction:column; align-items:center; gap:5px; position:relative; cursor:default; transition:border-color .15s,transform .12s; }
+.rank-reward-card:hover { border-color:var(--accent); transform:translateY(-2px); box-shadow:0 6px 18px rgba(167,139,250,.15); }
+.rank-reward-qty { position:absolute; top:5px; right:5px; background:var(--bg); color:var(--text2); font-size:9px; font-weight:700; border-radius:var(--pill); padding:1px 6px; line-height:1.5; border:1px solid var(--border2); }
+.rank-reward-img { width:50px; height:50px; border-radius:9px; background:var(--bg3); overflow:hidden; display:flex; align-items:center; justify-content:center; border:1px solid var(--border); }
+.rank-reward-img img { width:100%;height:100%;object-fit:contain; }
+.rank-reward-name { font-size:9px; font-weight:600; color:var(--text2); text-align:center; line-height:1.3; word-break:break-word; }
+.rank-reward-tier { font-size:8px; font-weight:700; color:var(--accent); }
+.rank-star-hdr { display:flex; align-items:center; gap:8px; margin-bottom:10px; margin-top:4px; }
+.rank-star-emoji { color:var(--gold); font-size:11px; }
+.rank-star-label { font-size:11px; font-weight:700; color:var(--text2); }
+.rank-star-divider { flex:1; height:1px; background:var(--border); }
+.rankup-section { margin-bottom:20px; }
+.rankup-section-title { font-size:9.5px; font-weight:700; text-transform:uppercase; letter-spacing:.1em; color:var(--text3); margin-bottom:11px; }
+
+/* ── ZONE MODAL ── */
+.zone-modal { max-width:1000px; }
+.zone-body { display:flex; min-height:400px; }
+.zone-left { width:210px; flex-shrink:0; padding:20px 16px; border-right:1px solid var(--border); display:flex; flex-direction:column; }
+.zone-left-title { font-weight:800; font-size:11px; text-transform:uppercase; letter-spacing:.1em; color:var(--text3); margin-bottom:16px; text-align:center; }
+.zone-stat { text-align:center; padding:10px 0; border-bottom:1px solid var(--border); }
+.zone-stat:last-child { border-bottom:none; }
+.zone-stat-label { font-size:9px; font-weight:700; text-transform:uppercase; letter-spacing:.08em; color:var(--text3); margin-bottom:3px; }
+.zone-stat-value { font-size:18px; font-weight:800; color:var(--text); line-height:1.1; }
+.zone-stat-value.sm { font-size:12px; }
+.zone-right { flex:1; padding:20px; overflow-y:auto; }
+.zone-section-title { font-size:9.5px; font-weight:700; text-transform:uppercase; letter-spacing:.1em; color:var(--text3); margin-bottom:12px; }
+.zone-eggs-list { display:flex; flex-direction:column; gap:12px; }
+.zone-egg-block { background:var(--surface); border:1px solid var(--border); border-radius:12px; overflow:hidden; }
+.zone-egg-hdr { display:flex; align-items:center; gap:12px; padding:11px 13px; border-bottom:1px solid var(--border); }
+.zone-egg-icon { width:46px; height:46px; border-radius:9px; background:var(--bg3); overflow:hidden; display:flex; align-items:center; justify-content:center; border:1px solid var(--border); flex-shrink:0; }
+.zone-egg-icon img { width:100%;height:100%;object-fit:contain; }
+.zone-egg-name { font-weight:700; font-size:13px; color:var(--text); }
+.zone-egg-meta { font-size:10px; font-weight:600; color:var(--text3); margin-top:2px; }
+.zone-pets-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(76px,1fr)); gap:7px; padding:11px; }
+.zone-pet-card { background:var(--bg2); border:1px solid var(--border); border-radius:10px; padding:7px 5px 6px; display:flex; flex-direction:column; align-items:center; gap:4px; position:relative; }
+.zone-pet-chance { position:absolute; top:3px; right:4px; background:var(--bg); color:var(--text3); font-size:8px; font-weight:700; border-radius:var(--pill); padding:1px 5px; line-height:1.5; border:1px solid var(--border2); }
+.zone-pet-chance.rare  { background:rgba(167,139,250,.15); border-color:rgba(167,139,250,.35); color:var(--accent); }
+.zone-pet-chance.ultra { background:rgba(244,114,182,.15); border-color:rgba(244,114,182,.35); color:var(--pink); }
+.zone-pet-img { width:42px; height:42px; border-radius:8px; background:var(--bg3); overflow:hidden; display:flex; align-items:center; justify-content:center; border:1px solid var(--border); }
+.zone-pet-img img { width:100%;height:100%;object-fit:contain; }
+.zone-pet-name { font-size:8.5px; font-weight:600; color:var(--text2); text-align:center; line-height:1.3; word-break:break-word; }
+.zone-no-eggs { color:var(--text3); font-size:13px; font-weight:600; padding:20px 0; }
+
+/* ── TIERS TABLE ── */
+.tiers-modal { max-width:900px; }
+.tier-table { width:100%; border-collapse:collapse; }
+.tier-table th { text-align:left; font-size:9.5px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--text3); padding:10px 14px; border-bottom:1px solid var(--border); background:var(--bg3); }
+.tier-table td { padding:11px 14px; border-bottom:1px solid var(--border); font-size:12px; font-weight:500; color:var(--text); vertical-align:middle; }
+.tier-table tr:last-child td { border-bottom:none; }
+.tier-table tr:hover td { background:rgba(255,255,255,.02); }
+.rarity-pill { display:inline-flex; align-items:center; padding:3px 10px; border-radius:var(--pill); font-size:10px; font-weight:700; border:1px solid; white-space:nowrap; }
+.tier-num { width:30px; height:30px; border-radius:8px; display:inline-flex; align-items:center; justify-content:center; font-size:12px; font-weight:800; color:#fff; }
+.power-bar-wrap { display:flex; align-items:center; gap:8px; }
+.power-bar { height:6px; border-radius:3px; background:var(--accent); transition:width .3s; min-width:4px; }
+.power-val { font-size:12px; font-weight:800; color:var(--text); min-width:36px; }
+.time-val { font-size:11px; font-weight:600; color:var(--text2); }
+
+/* ── ACHIEVEMENT MODAL ── */
+.ach-modal { max-width:760px; }
+.ach-header { display:flex; align-items:center; gap:16px; padding:18px 20px; border-bottom:1px solid var(--border); }
+.ach-icon { width:66px; height:66px; border-radius:14px; background:var(--bg3); overflow:hidden; display:flex; align-items:center; justify-content:center; border:1px solid var(--border2); flex-shrink:0; }
+.ach-icon img { width:100%;height:100%;object-fit:contain; }
+.ach-meta { flex:1; }
+.ach-name { font-weight:800; font-size:17px; color:var(--text); }
+.ach-tier { border-top:1px solid var(--border); padding:16px 20px; }
+.ach-tier:last-child { border-bottom:none; }
+.ach-tier-hdr { display:flex; align-items:center; gap:10px; margin-bottom:10px; flex-wrap:wrap; }
+.ach-tier-title { font-weight:800; font-size:13px; color:var(--text); }
+.diff-badge { padding:3px 10px; border-radius:var(--pill); font-size:10px; font-weight:700; border:1px solid; }
+.diff-easy   { background:rgba(74,222,128,.1);  border-color:rgba(74,222,128,.3);  color:var(--green); }
+.diff-medium { background:rgba(251,191,36,.1);  border-color:rgba(251,191,36,.3);  color:var(--gold); }
+.diff-hard   { background:rgba(244,114,182,.1); border-color:rgba(244,114,182,.3); color:var(--pink); }
+.ach-desc { font-size:12px; font-weight:500; color:var(--text2); margin-bottom:9px; }
+.ach-amount { font-size:11px; font-weight:700; background:var(--surface); border:1px solid var(--border2); border-radius:var(--pill); padding:3px 10px; display:inline-block; margin-bottom:9px; }
+
+/* ── GUILD BATTLE MODAL ── */
+.guild-modal { max-width:700px; }
+.guild-header { padding:16px 20px; border-bottom:1px solid var(--border); display:flex; gap:12px; align-items:center; flex-wrap:wrap; }
+.guild-time-box { background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:9px 14px; }
+.guild-time-label { font-size:9px; font-weight:700; text-transform:uppercase; letter-spacing:.07em; color:var(--text3); margin-bottom:3px; }
+.guild-time-val { font-size:13px; font-weight:700; color:var(--text); }
+.placement-row { display:flex; align-items:center; gap:14px; padding:11px 20px; border-bottom:1px solid var(--border); }
+.placement-row:last-child { border-bottom:none; }
+.placement-rank { min-width:90px; font-size:12px; font-weight:700; color:var(--text2); }
+.placement-rank .top { color:var(--gold); font-size:13px; }
+.placement-item-name { font-weight:700; font-size:12px; color:var(--text); flex:1; }
+.placement-contrib { font-size:10.5px; font-weight:600; color:var(--text3); }
+.medal { font-size:17px; width:26px; text-align:center; }
+
+/* ── MASTERY MODAL ── */
+.mastery-modal { max-width:800px; }
+.mastery-header { padding:18px 20px; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:14px; }
+.mastery-icon { width:60px; height:60px; border-radius:13px; background:var(--bg3); overflow:hidden; display:flex; align-items:center; justify-content:center; border:1px solid var(--border2); }
+.mastery-icon img { width:100%;height:100%;object-fit:contain; }
+.mastery-desc { font-size:12px; font-weight:500; color:var(--text2); margin-top:4px; }
+.perk-group { padding:13px 20px; border-bottom:1px solid var(--border); }
+.perk-group:last-child { border-bottom:none; }
+.perk-group-name { font-weight:700; font-size:12px; color:var(--text); margin-bottom:8px; }
+.perk-levels { display:flex; flex-direction:column; gap:5px; }
+.perk-level-row { display:flex; align-items:center; gap:10px; }
+.perk-lvl-badge { background:var(--accent2); color:#fff; font-size:9.5px; font-weight:700; padding:3px 9px; border-radius:var(--pill); min-width:54px; text-align:center; flex-shrink:0; }
+.perk-lvl-text { font-size:11.5px; font-weight:500; color:var(--text2); flex:1; }
+
+/* ── REBIRTH MODAL ── */
+.rebirth-modal { max-width:680px; }
+.rebirth-header { padding:20px; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:16px; }
+.rebirth-num { width:52px; height:52px; border-radius:13px; background:linear-gradient(135deg,var(--accent2),var(--pink)); display:flex; align-items:center; justify-content:center; font-size:22px; font-weight:900; color:#fff; flex-shrink:0; }
+.rebirth-meta-title { font-weight:800; font-size:17px; color:var(--text); }
+.rebirth-boost { font-size:12px; font-weight:700; color:var(--green); margin-top:4px; }
+.rebirth-req { font-size:11px; font-weight:600; color:var(--text2); }
+.rebirth-unlock { display:flex; align-items:flex-start; gap:13px; padding:13px 20px; border-bottom:1px solid var(--border); }
+.rebirth-unlock:last-child { border-bottom:none; }
+.rebirth-unlock-icon { width:42px; height:42px; border-radius:10px; background:var(--bg3); overflow:hidden; display:flex; align-items:center; justify-content:center; border:1px solid var(--border); flex-shrink:0; }
+.rebirth-unlock-icon img { width:100%;height:100%;object-fit:contain; }
+.rebirth-unlock-title { font-weight:700; font-size:13px; color:var(--text); }
+.rebirth-unlock-desc { font-size:11px; font-weight:500; color:var(--text2); margin-top:3px; }
+
+.odds-toggle-btn { height:36px; padding:0 14px; background:var(--surface); border:1px solid var(--border2); border-radius:var(--pill); color:var(--text2); font-family:'Inter',sans-serif; font-size:12px; font-weight:700; cursor:pointer; transition:all .15s; white-space:nowrap; }
+.odds-toggle-btn:hover { border-color:var(--accent); color:var(--accent); }
+.odds-toggle-btn.active { background:rgba(167,139,250,.15); border-color:var(--accent); color:var(--accent); }
+.nav-btn { height:36px; padding:0 14px; background:var(--surface); border:1px solid var(--border2); border-radius:var(--pill); color:var(--text2); font-family:'Inter',sans-serif; font-size:12px; font-weight:700; cursor:pointer; transition:all .15s; white-space:nowrap; }
+.nav-btn:hover { border-color:var(--accent); color:var(--accent); background:rgba(167,139,250,.08); }
+.nav-btn.active { background:linear-gradient(135deg,var(--accent2),var(--accent)); border-color:transparent; color:#fff; box-shadow:0 4px 14px rgba(124,58,237,.35); }
+
+/* ── RAP PANEL ── */
+#rap-panel, #clans-panel { display:none; }
+.rap-controls { display:flex; gap:10px; margin-bottom:18px; flex-wrap:wrap; align-items:center; }
+.rap-table-wrap { overflow-x:auto; }
+.rap-table { width:100%; border-collapse:collapse; }
+.rap-table th { text-align:left; font-size:9.5px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--text3); padding:10px 14px; border-bottom:1px solid var(--border); background:var(--bg3); position:sticky; top:0; }
+.rap-table td { padding:10px 14px; border-bottom:1px solid var(--border); font-size:12px; vertical-align:middle; }
+.rap-table tr:last-child td { border-bottom:none; }
+.rap-table tr:hover td { background:rgba(255,255,255,.02); }
+.rap-thumb { width:38px; height:38px; border-radius:9px; background:var(--bg3); overflow:hidden; display:flex; align-items:center; justify-content:center; border:1px solid var(--border); flex-shrink:0; }
+.rap-thumb img { width:100%;height:100%;object-fit:contain; }
+.rap-name { font-weight:700; color:var(--text); font-size:13px; }
+.rap-sub { font-size:10px; font-weight:600; color:var(--text3); margin-top:2px; }
+.rap-val { font-weight:800; font-size:14px; color:var(--gold); }
+.rap-cat { display:inline-block; padding:2px 8px; border-radius:var(--pill); font-size:9.5px; font-weight:700; background:rgba(167,139,250,.1); border:1px solid rgba(167,139,250,.25); color:var(--accent); }
+.rap-modifier { display:inline-block; padding:1px 6px; border-radius:var(--pill); font-size:9px; font-weight:700; margin-left:4px; }
+.rap-golden { background:rgba(251,191,36,.12); border:1px solid rgba(251,191,36,.3); color:var(--gold); }
+.rap-rainbow { background:rgba(244,114,182,.12); border:1px solid rgba(244,114,182,.3); color:var(--pink); }
+.rap-shiny { background:rgba(34,211,238,.12); border:1px solid rgba(34,211,238,.3); color:var(--cyan); }
+
+/* ── CLANS PANEL ── */
+.clans-stats-row { display:flex; gap:10px; margin-bottom:20px; flex-wrap:wrap; }
+.clan-stat-box { flex:1; min-width:120px; background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:12px 14px; }
+.clan-stat-label { font-size:9px; font-weight:700; text-transform:uppercase; letter-spacing:.08em; color:var(--text3); margin-bottom:4px; }
+.clan-stat-value { font-size:22px; font-weight:800; color:var(--text); }
+.clan-card { background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:14px; display:flex; align-items:center; gap:12px; cursor:pointer; transition:border-color .15s,transform .12s,box-shadow .15s; animation:fadeIn .2s ease both; }
+.clan-card:hover { border-color:var(--accent); transform:translateY(-2px); box-shadow:0 6px 22px rgba(167,139,250,.15); }
+.clan-icon { width:52px; height:52px; border-radius:12px; background:var(--bg3); overflow:hidden; display:flex; align-items:center; justify-content:center; border:1px solid var(--border2); flex-shrink:0; }
+.clan-icon img { width:100%;height:100%;object-fit:contain; }
+.clan-info { flex:1; min-width:0; }
+.clan-name { font-weight:800; font-size:14px; color:var(--text); }
+.clan-pts { font-size:12px; font-weight:700; color:var(--gold); margin-top:2px; }
+.clan-meta { font-size:10.5px; font-weight:600; color:var(--text3); margin-top:2px; }
+.clan-rank { font-size:20px; font-weight:900; color:var(--text3); flex-shrink:0; min-width:32px; text-align:right; }
+.clans-grid { display:flex; flex-direction:column; gap:8px; }
+.clans-load-more { display:block; width:100%; margin-top:14px; padding:12px; background:var(--surface); border:1px solid var(--border2); border-radius:var(--pill); color:var(--text2); font-family:'Inter',sans-serif; font-size:13px; font-weight:700; cursor:pointer; transition:all .15s; }
+.clans-load-more:hover { border-color:var(--accent); color:var(--accent); }
+
+/* ── CLAN DETAIL ── */
+.clan-detail-header { display:flex; align-items:center; gap:16px; padding:20px; border-bottom:1px solid var(--border); }
+.clan-detail-icon { width:72px; height:72px; border-radius:16px; background:var(--bg3); overflow:hidden; display:flex; align-items:center; justify-content:center; border:1px solid var(--border2); box-shadow:var(--glow); flex-shrink:0; }
+.clan-detail-icon img { width:100%;height:100%;object-fit:contain; }
+.clan-detail-name { font-weight:900; font-size:22px; color:var(--text); }
+.clan-detail-desc { font-size:13px; font-weight:500; color:var(--text2); margin-top:4px; font-style:italic; }
+.clan-member-row { display:flex; align-items:center; gap:10px; padding:9px 20px; border-bottom:1px solid var(--border); font-size:12px; }
+.clan-member-row:last-child { border-bottom:none; }
+.clan-member-perm { padding:2px 8px; border-radius:var(--pill); font-size:9.5px; font-weight:700; }
+.perm-owner { background:rgba(251,191,36,.15); border:1px solid rgba(251,191,36,.35); color:var(--gold); }
+.perm-officer { background:rgba(167,139,250,.15); border:1px solid rgba(167,139,250,.35); color:var(--accent); }
+.perm-member { background:var(--surface2); border:1px solid var(--border2); color:var(--text3); }
+.medal-box { display:flex; gap:10px; margin-top:6px; }
+.medal-chip { display:flex; align-items:center; gap:5px; background:var(--surface); border:1px solid var(--border2); border-radius:var(--pill); padding:4px 10px; font-size:11px; font-weight:700; color:var(--text); }
+.merchant-modal { max-width:600px; }
+.merchant-header { padding:18px 20px; border-bottom:1px solid var(--border); }
+.merchant-name { font-weight:800; font-size:17px; color:var(--text); }
+.merchant-machine { font-size:11.5px; font-weight:600; color:var(--text3); margin-top:3px; }
+.merchant-body { padding:20px; }
+.slot-grid { display:flex; gap:7px; flex-wrap:wrap; margin-top:10px; }
+.slot-pill { background:var(--surface); border:1px solid var(--border2); border-radius:var(--pill); padding:4px 11px; font-size:11.5px; font-weight:600; color:var(--text); }
+.respect-row { display:flex; align-items:center; gap:8px; padding:7px 0; border-bottom:1px solid var(--border); font-size:12px; font-weight:500; color:var(--text2); }
+.respect-row:last-child { border-bottom:none; }
+.respect-row strong { color:var(--text); }
+
+.rap-inline-box { background:rgba(251,191,36,.06); border:1px solid rgba(251,191,36,.2); border-radius:12px; padding:11px 13px; margin-top:10px; }
+.rap-inline-title { font-size:9px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--gold); margin-bottom:8px; }
+.rap-inline-row { display:flex; align-items:center; gap:8px; padding:3px 0; }
+.rap-inline-label { font-size:11px; font-weight:600; color:var(--text2); flex:1; }
+.rap-inline-val { font-size:14px; font-weight:800; color:var(--gold); }
+.rap-inline-exact { font-size:9.5px; font-weight:600; color:var(--text3); }
+.card-exists { font-size:9px; font-weight:700; color:var(--text3); text-align:center; min-height:13px; line-height:1.3; }
+.card-exists.loaded { color:var(--cyan); }
+.battle-reward-chip { display:inline-flex; align-items:center; gap:5px; background:rgba(167,139,250,.12); border:1px solid rgba(167,139,250,.25); border-radius:var(--pill); padding:4px 10px; font-size:11px; font-weight:700; color:var(--text); white-space:nowrap; }
+.battle-time-chip { background:var(--surface); border:1px solid var(--border2); border-radius:var(--pill); padding:4px 10px; font-size:11px; font-weight:600; color:var(--text2); white-space:nowrap; }
+
+footer { margin-top:24px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px; }
+
+/* ── ODDS TOGGLE ── */
+.odds-toggle-btn { height:36px; padding:0 16px; background:var(--surface); border:1px solid var(--border2); border-radius:var(--pill); color:var(--text2); font-family:'Inter',sans-serif; font-size:12px; font-weight:700; cursor:pointer; transition:all .18s; display:flex; align-items:center; gap:6px; white-space:nowrap; letter-spacing:.01em; }
+.odds-toggle-btn:hover { border-color:var(--accent); color:var(--accent); background:rgba(167,139,250,.08); }
+.odds-toggle-btn.active { background:linear-gradient(135deg,var(--accent2),var(--accent)); border-color:transparent; color:#fff; box-shadow:0 2px 10px rgba(124,58,237,.35); }
+footer p { font-size:11.5px; font-weight:500; color:var(--text3); }
+footer a { color:var(--text2); text-decoration:none; }
+footer a:hover { color:var(--accent); }
+
+@media(max-width:600px){
+  .egg-body,.pet-body,.rank-body,.zone-body{flex-direction:column;}
+  .egg-left,.pet-left,.rank-left,.zone-left{width:100%;border-right:none;border-bottom:1px solid var(--border);}
+  .tier-table th:nth-child(4),.tier-table td:nth-child(4){display:none;}
+}
+</style>
+</head>
+<body>
+<div id="root">
+  <header>
+    <div class="logo">
+      <div class="logo-icon" aria-hidden="true">🐾</div>
+      <div class="logo-text">PS99 <span>Browser</span></div>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+      <div class="header-meta">Pet Simulator 99 · Big Games API</div>
+      <button id="nav-collections" class="nav-btn active" title="Browse collections">📦 Collections</button>
+      <button id="nav-rap" class="nav-btn" title="Recent Average Prices">💰 RAP</button>
+      <button id="nav-clans" class="nav-btn" title="Browse clans">⚔️ Clans</button>
+    </div>
+    <button id="odds-toggle" class="odds-toggle-btn" title="Toggle odds display format" aria-label="Toggle odds display format">% Odds</button>
+  </header>
+  <!-- ACTIVE CLAN BATTLE BANNER -->
+  <div id="battle-banner" style="display:none;margin-bottom:14px;background:linear-gradient(135deg,rgba(124,58,237,.18),rgba(244,114,182,.12));border:1px solid rgba(167,139,250,.3);border-radius:14px;padding:12px 18px;align-items:center;gap:14px;flex-wrap:wrap;">
+    <div style="font-size:22px">⚔️</div>
+    <div style="flex:1;min-width:0;">
+      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--accent);margin-bottom:2px;">Active Clan Battle</div>
+      <div id="battle-title" style="font-weight:800;font-size:15px;color:var(--text);">Loading…</div>
+      <div id="battle-meta" style="font-size:11.5px;font-weight:600;color:var(--text2);margin-top:2px;"></div>
+    </div>
+    <div id="battle-rewards" style="display:flex;gap:8px;flex-wrap:wrap;"></div>
+    <div id="battle-times" style="display:flex;gap:8px;flex-wrap:wrap;"></div>
+  </div>
+
+  <main>
+  <div class="main-panel">
+    <div class="collections-title">Collections</div>
+    <div class="controls">
+      <div class="search-wrap">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input type="text" id="search" placeholder="Search items…" aria-label="Search items" />
+      </div>
+      <select id="cat-filter"><option value="">All categories</option></select>
+      <span class="count-badge" id="count"></span>
+    </div>
+    <div class="tabs-label">Filter by collection</div>
+    <div class="tabs-scroll" id="tabs"></div>
+    <div id="grid">
+      <div class="state-box"><div style="font-size:36px;opacity:.4">🐾</div><div>Pick a collection to get started</div></div>
+    </div>
+  </div>
+  </main>
+  <!-- RAP PANEL -->
+  <div id="rap-panel">
+    <div class="main-panel">
+      <div class="collections-title">💰 Recent Average Prices</div>
+      <div class="rap-controls">
+        <div class="search-wrap" style="flex:1;min-width:200px;">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          <input type="text" id="rap-search" placeholder="Search RAP items…" aria-label="Search RAP items" />
+        </div>
+        <select id="rap-cat-filter"><option value="">All categories</option></select>
+        <select id="rap-sort">
+          <option value="value-desc">Highest RAP</option>
+          <option value="value-asc">Lowest RAP</option>
+          <option value="name-asc">Name A–Z</option>
+          <option value="name-desc">Name Z–A</option>
+        </select>
+        <span class="count-badge" id="rap-count"></span>
+      </div>
+      <div id="rap-grid">
+        <div class="state-box"><div class="spinner"></div><div>Loading RAP data…</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CLANS PANEL -->
+  <div id="clans-panel">
+    <div class="main-panel">
+      <div class="collections-title">⚔️ Clans</div>
+      <div class="clans-stats-row" id="clans-stats">
+        <div class="clan-stat-box"><div class="clan-stat-label">Total Clans</div><div class="clan-stat-value" id="clans-total-val">—</div></div>
+        <div class="clan-stat-box"><div class="clan-stat-label">Loaded</div><div class="clan-stat-value" id="clans-loaded-val">0</div></div>
+        <div class="clan-stat-box"><div class="clan-stat-label">Sort By</div>
+          <select id="clan-sort" style="background:none;border:none;color:var(--text);font-family:'Inter',sans-serif;font-weight:800;font-size:16px;cursor:pointer;outline:none;width:100%;">
+            <option value="Points">Points</option>
+            <option value="Members">Members</option>
+            <option value="DepositedDiamonds">Diamonds</option>
+          </select>
+        </div>
+      </div>
+      <div class="rap-controls">
+        <div class="search-wrap" style="flex:1;min-width:200px;">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          <input type="text" id="clan-search" placeholder="Search by clan name…" aria-label="Search clans" />
+        </div>
+        <button id="clan-lookup-btn" style="height:42px;padding:0 18px;background:var(--accent2);border:none;border-radius:var(--pill);color:#fff;font-family:'Inter',sans-serif;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;">🔍 Lookup Clan</button>
+      </div>
+      <div class="clans-grid" id="clans-grid">
+        <div class="state-box"><div class="spinner"></div><div>Loading clans…</div></div>
+      </div>
+      <button class="clans-load-more" id="clans-load-more" style="display:none">Load More</button>
+    </div>
+  </div>
+
+  <footer>
+    <p>Data from <a href="https://ps99.biggamesapi.io" target="_blank">ps99.biggamesapi.io</a> · Images via Roblox Thumbnails API</p>
+    <p>Attribute to Pet Simulator 99 &amp; Big Games per API terms</p>
+  </footer>
+</div>
+
+<div id="detail-page" role="dialog" aria-modal="true" aria-label="Item detail">
+  <div class="detail-wrap" id="detail-wrap">
+    <button class="detail-back" id="detail-back" aria-label="Back to collection">← Back</button>
+    <div id="detail-inner"></div>
+  </div>
+</div>
+
+<script>
+const API_BASE  = "https://ps99.biggamesapi.io/api/collection/";
+const THUMB_URL = id => `https://ps99.biggamesapi.io/image/${id}`;
+const imgCache  = {};
+
+let COLS = [];
+
+async function loadCollections(){
+  try{
+    const r=await fetch('https://ps99.biggamesapi.io/api/collections');
+    const j=await r.json();
+    COLS=(j.data||[]).map(c=>typeof c==='string'?c:c.name||c).filter(Boolean).sort();
+  }catch(e){ console.warn('Failed to load collections',e); }
+}
+
+// Rarity data loaded dynamically from the API — nothing hardcoded
+let rarityMap = {};        // DisplayName → configData
+let rarityByNumber = [];   // sorted by RarityNumber (excludes special 998/999/1000)
+
+function hexToRarityStyle(hex){
+  if(!hex||!hex.startsWith('#')) return {bg:'#f1f5f9', border:'#cbd5e1', color:'#64748b'};
+  const r=parseInt(hex.slice(1,3),16), g=parseInt(hex.slice(3,5),16), b=parseInt(hex.slice(5,7),16);
+  const bg=`rgb(${Math.round(r*.13+255*.87)},${Math.round(g*.13+255*.87)},${Math.round(b*.13+255*.87)})`;
+  const tc=`rgb(${Math.round(r*.42)},${Math.round(g*.42)},${Math.round(b*.42)})`;
+  return {bg, border:hex, color:tc};
+}
+function getRarityStyle(name){
+  const cd=rarityMap[name];
+  if(!cd||!cd.Color) return {bg:'#f1f5f9', border:'#cbd5e1', color:'#64748b'};
+  return hexToRarityStyle(cd.Color);
+}
+function getRarityByIndex(i){
+  // clamp to last known rarity when index exceeds list
+  return rarityByNumber[Math.min(i, rarityByNumber.length-1)] || {};
+}
+
+async function loadRarities(){
+  try{
+    const r=await fetch(API_BASE+'Rarity'); const j=await r.json();
+    (j.data||[]).forEach(item=>{
+      const cd=item.configData||{};
+      if(cd.DisplayName) rarityMap[cd.DisplayName]=cd;
+    });
+    rarityByNumber=Object.values(rarityMap)
+      .filter(cd=>cd.RarityNumber!=null&&cd.RarityNumber<900)
+      .sort((a,b)=>a.RarityNumber-b.RarityNumber);
+    // de-duplicate by RarityNumber (keep last seen)
+    const seen=new Set(); rarityByNumber=rarityByNumber.filter(cd=>{
+      if(seen.has(cd.RarityNumber)) return false; seen.add(cd.RarityNumber); return true;
+    });
+  }catch(e){ console.warn('Failed to load rarities',e); }
+}
+
+async function resolveImgs(ids){
+  ids.forEach(id => { if(id && !imgCache[id]) imgCache[id] = THUMB_URL(id); });
+}
+function applyImg(el, id){
+  const url = imgCache[id];
+  if(url && el) el.innerHTML = `<img src="${url}" onerror="this.parentElement.innerHTML='<span style=\'font-size:20px;opacity:.2\'>?</span>'" />`;
+}
+
+let allItems=[], currentCol=null, cache={};
+
+function buildTabs(){
+  const el=document.getElementById('tabs');
+  el.innerHTML=COLS.map(c=>`<button class="tab" data-col="${c}">${c}</button>`).join('');
+  el.addEventListener('click',e=>{ if(e.target.classList.contains('tab')) loadCol(e.target.dataset.col); });
+}
+
+async function loadCol(name){
+  currentCol=name;
+  document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.dataset.col===name));
+  document.getElementById('search').value='';
+  document.getElementById('cat-filter').value='';
+  setGrid(`<div class="state-box"><div class="spinner"></div><div>Loading ${name}…</div></div>`);
+  try{
+    const r=await fetch(API_BASE+name); const j=await r.json(); cache[name]=j.data||[];
+    if(name==='Eggs'){
+      allItems=cache[name].slice().reverse();
+    } else if(name==='Zones'){
+      allItems=cache[name].slice().sort((a,b)=>((b.configData||{}).ZoneNumber||0)-((a.configData||{}).ZoneNumber||0));
+    } else {
+      const numSuffix=s=>{const m=String(s||'').match(/(\d+)$/);return m?+m[1]:0;};
+      const baseName=s=>String(s||'').replace(/\s*\d+\s*$/,'').trim();
+      const reversed=cache[name].slice().reverse();
+      const groupPos={};
+      reversed.forEach((item,i)=>{const b=baseName(item.configName);if(!(b in groupPos))groupPos[b]=i;});
+      allItems=reversed.slice().sort((a,b)=>{
+        const ba=baseName(a.configName),bb=baseName(b.configName);
+        if(ba!==bb) return groupPos[ba]-groupPos[bb];
+        return numSuffix(a.configName)-numSuffix(b.configName);
+      });
+    }
+    buildCatFilter(allItems); render();
+  }catch(e){ setGrid(`<div class="state-box"><div style="font-size:28px">⚠️</div><div>Failed to load ${name}.</div></div>`); }
+}
+function setGrid(html){ document.getElementById('grid').innerHTML=html; }
+
+function buildCatFilter(data){
+  const cats=[...new Set(data.map(getSubCat).filter(Boolean))].sort();
+  document.getElementById('cat-filter').innerHTML='<option value="">All categories</option>'+cats.map(c=>`<option value="${c}">${c}</option>`).join('');
+}
+
+function getRaritySwatchHTML(item, size='74px', radius='var(--radius-sm)'){
+  const cd=item.configData||{};
+  const color=cd.Color, gradient=cd.Gradient;
+  if(!color&&!gradient) return null;
+  let bg;
+  if(gradient&&typeof gradient==='object'&&gradient.Colors&&gradient.Colors.length>=2){
+    const stops=gradient.Colors.map((c,i)=>`${c} ${Math.round(i/(gradient.Colors.length-1)*100)}%`).join(',');
+    bg=`linear-gradient(135deg,${stops})`;
+  } else if(gradient&&typeof gradient==='string'){
+    bg=gradient;
+  } else {
+    bg=color;
+  }
+  return `<div style="width:${size};height:${size};border-radius:${radius};background:${bg};box-shadow:0 2px 10px rgba(0,0,0,.18);border:2px solid rgba(255,255,255,.5)"></div>`;
+}
+
+function render(){
+  const search=document.getElementById('search').value.trim().toLowerCase();
+  const cat=document.getElementById('cat-filter').value;
+  const filtered=allItems.filter(item=>{
+    if(search&&!getName(item).toLowerCase().includes(search)) return false;
+    if(cat&&getSubCat(item)!==cat) return false;
+    return true;
+  });
+  document.getElementById('count').textContent=`${filtered.length} item${filtered.length!==1?'s':''}`;
+  if(!filtered.length){ setGrid('<div class="state-box"><div style="font-size:28px">🔍</div><div>No items found.</div></div>'); return; }
+  const grid=document.getElementById('grid');
+  grid.innerHTML=filtered.map((item,i)=>{
+    const name=getName(item),sub=getSubCat(item),assetId=getAssetId(item);
+    const bc=sub?` ${sub.toLowerCase().replace(/\s+/g,'-')}`:'';
+    const swatch=getRaritySwatchHTML(item);
+    const imgHTML=assetId?`<img data-asset="${assetId}" alt="${x(name)}" onerror="this.style.display='none'" />`:swatch||`<span class="ph">❓</span>`;
+    const existsId=`exists-${i}`;
+    return `<div class="card" data-i="${i}">
+      <div class="card-img">${imgHTML}</div>
+      <div class="card-name">${x(name)}</div>
+      ${sub?`<div class="card-badge${bc}">${x(sub)}</div>`:''}
+      ${currentCol==='Pets'||currentCol==='Potions'||currentCol==='Enchants'||currentCol==='XPPotions'||currentCol==='MiscItems'?`<div class="card-exists" id="exists-${i}"></div>`:''}
+    </div>`;
+  }).join('');
+  grid.querySelectorAll('.card').forEach(c=>c.addEventListener('click',()=>openModal(filtered[+c.dataset.i])));
+  batchImgs(grid.querySelectorAll('img[data-asset]'));
+  // Async: inject exists counts on cards
+  const existsCols=new Set(['Pets','Potions','Enchants','XPPotions','MiscItems']);
+  if(existsCols.has(currentCol)) injectGridExists(filtered);
+}
+
+async function batchImgs(imgs){
+  await Promise.all(Array.from(imgs).map(img=>{
+    const id=img.dataset.asset; if(!id) return;
+    if(!imgCache[id]) imgCache[id]=THUMB_URL(id);
+    img.src=imgCache[id];
+    return new Promise(res=>{ if(img.complete)res(); else{ img.onload=res; img.onerror=res; } });
+  }));
+}
+async function fetchImg(assetId, el){
+  if(!assetId||!el) return;
+  await resolveImgs([assetId]);
+  applyImg(el, assetId);
+}
+
+// ── Helpers ──
+function getName(item){ const cd=item.configData||{}; return cd.name||cd.DisplayName||cd.Name||item.configName||'Unknown'; }
+function getSubCat(item){ return item.category||item.configData?.category||''; }
+function getAssetId(item){
+  const cd=item.configData||{};
+  const raw=cd.thumbnail||cd.image||cd.icon||cd.Icon||cd.mapImage||cd.PageIcon||
+    (Array.isArray(cd.Icons)&&cd.Icons[0]&&cd.Icons[0].Icon)||
+    (Array.isArray(cd.Tiers)&&cd.Tiers[0]&&(cd.Tiers[0].orbImage||cd.Tiers[0].tinyImage||cd.Tiers[0].Icon))||'';
+  if(!raw) return null;
+  const m=String(raw).match(/rbxassetid:\/\/(\d+)/i);
+  return m?m[1]:null;
+}
+function getAssetIdFromStr(s){
+  if(!s) return null;
+  const m=String(s).match(/rbxassetid:\/\/(\d+)/i); return m?m[1]:null;
+}
+function x(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+// Format an item _data object into readable text
+function fmtItem(d){
+  if(!d) return '?';
+  let s = d.id||'?';
+  if(d.tn!=null) s+=` T${d.tn}`;
+  if(d._am!=null&&d._am>1) s=`×${d._am} ${s}`;
+  if(d.pt!=null) s+=` (Pt ${d.pt})`;
+  return s;
+}
+function fmtItemPill(d){
+  if(!d) return '';
+  const id=d.id||'?';
+  const tn=d.tn!=null?`<span class="t"> T${d.tn}</span>`:'';
+  const am=d._am!=null&&d._am>1?`<span class="a">×${d._am}</span>`:'';
+  const pt=d.pt!=null?`<span class="p"> Pt${d.pt}</span>`:'';
+  return `<span class="item-pill">${am}${x(id)}${tn}${pt}</span>`;
+}
+function fmtTime(secs){
+  if(!secs) return '—';
+  const h=Math.floor(secs/3600), m=Math.floor((secs%3600)/60), s=secs%60;
+  if(h>0&&m>0) return `${h}h ${m}m`;
+  if(h>0) return `${h} hour${h>1?'s':''}`;
+  if(m>0&&s>0) return `${m}m ${s}s`;
+  if(m>0) return `${m} min`;
+  return `${s}s`;
+}
+function fmtDate(iso){
+  if(!iso) return '—';
+  try{ return new Date(iso).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}); }catch{ return iso; }
+}
+function fmtUnixDate(ts){
+  if(!ts) return '—';
+  try{ return new Date(ts*1000).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric',hour:'2-digit',minute:'2-digit'}); }catch{ return ts; }
+}
+function rarityStyle(name){
+  const r=getRarityStyle(name);
+  return `style="background:${r.bg};border-color:${r.border};color:${r.color}"`;
+}
+
+// ── SHARED bindBtns ──
+function bindBtns(){
+  const jb=document.getElementById('btn-json');
+  if(jb) jb.addEventListener('click',()=>{ document.getElementById('jpanel').classList.toggle('open'); });
+}
+
+// ── EGG MODAL ──
+async function renderEgg(item){
+  const cd=item.configData||{}, name=getName(item), cat=item.category||'';
+  const petsRaw=cd.pets||[];
+  const pets=[];
+  if(Array.isArray(petsRaw)){
+    if(petsRaw.length && Array.isArray(petsRaw[0])){ petsRaw.forEach(p=>{ if(p&&typeof p[0]==='string') pets.push({name:p[0],chance:p[1]??'?'}); }); }
+    else { for(let i=0;i<petsRaw.length;i+=2) if(typeof petsRaw[i]==='string') pets.push({name:petsRaw[i],chance:petsRaw[i+1]??'?'}); }
+  } else if(petsRaw&&typeof petsRaw==='object'){ Object.entries(petsRaw).forEach(([k,v])=>pets.push({name:k,chance:v})); }
+  const tags=[];
+  if(cd.disableGold) tags.push(`<span class="etag etag-gold">No Gold</span>`);
+  if(cd.disableRainbow===true) tags.push(`<span class="etag etag-rb">No Rainbow</span>`);
+  if(cd.disableModifiers) tags.push(`<span class="etag etag-mod">No Modifiers</span>`);
+  if(cat.toLowerCase().includes('custom')||cd.custom) tags.push(`<span class="etag etag-custom">Custom</span>`);
+  const pct=v=>v!=null&&v!==false&&v!==0?`${v}%`:null;
+  document.getElementById('detail-wrap').className='detail-wrap';
+  document.getElementById('detail-inner').className='egg-modal';
+  document.getElementById('detail-inner').innerHTML=`
+    <div class="modal-bar">
+      <div class="modal-bar-title">${x(name)}</div>
+      <div class="modal-bar-actions"><button class="btn-icon btn-json" id="btn-json">{}</button></div>
+    </div>
+    <div class="json-panel" id="jpanel"><pre>${x(JSON.stringify(cd,null,2))}</pre></div>
+    <div class="egg-body">
+      <div class="egg-left">
+        <div class="egg-img-wrap" id="egg-img"><span style="font-size:32px;opacity:.3">?</span></div>
+        <div class="egg-name">${x(cd.name||name)}</div>
+        ${cat?`<div class="egg-cat">${x(cat)}</div>`:''}
+        <div class="egg-fields">
+          ${cd.currency?`<div class="egg-field"><span class="egg-field-k">Currency</span><span class="egg-field-v">${x(cd.currency)}</span></div>`:''}
+          ${cd.cost!=null?`<div class="egg-field"><span class="egg-field-k">Cost</span><span class="egg-field-v">${x(cd.cost)}</span></div>`:''}
+          ${pct(cd.goldChance)?`<div class="egg-field"><span class="egg-field-k">Gold</span><span class="egg-field-v gold">${pct(cd.goldChance)}</span></div>`:''}
+          ${pct(cd.rainbowChance)?`<div class="egg-field"><span class="egg-field-k">Rainbow</span><span class="egg-field-v purple">${pct(cd.rainbowChance)}</span></div>`:''}
+          ${pct(cd.shinyChance)?`<div class="egg-field"><span class="egg-field-k">Shiny</span><span class="egg-field-v green">${pct(cd.shinyChance)}</span></div>`:''}
+        </div>
+        ${tags.length?`<div class="egg-tags">${tags.join('')}</div>`:''}
+      </div>
+      <div class="egg-right">
+        <div class="section-header">PETS</div>
+        <div class="pets-grid" id="pets-grid">
+          ${pets.length?pets.map((p,i)=>{
+            const n=parseFloat(p.chance);
+            const rc=n<0.01?'ultra':n<1?'rare':'';
+            return `<div class="pet-card">
+              <div class="chance-badge ${rc}" data-chance="${p.chance}">${fmtChance(p.chance)}</div>
+              <div class="pet-card-img" id="pci-${i}"><span class="ph" style="font-size:22px">?</span></div>
+              <div class="pet-card-name">${x(p.name)}</div>
+            </div>`;
+          }).join(''):'<div style="color:var(--text2);font-size:13px;font-weight:600">No pet data</div>'}
+        </div>
+      </div>
+    </div>`;
+  bindBtns();
+  fetchImg(getAssetId(item),document.getElementById('egg-img'));
+  loadPetGridImgs(pets);
+}
+
+async function loadPetGridImgs(pets){
+  if(!cache['Pets']){ try{ const r=await fetch(API_BASE+'Pets'); const j=await r.json(); cache['Pets']=j.data||[]; }catch{} }
+  const petsData=cache['Pets']||[];
+  const nameToId={};
+  petsData.forEach(p=>{ const id=getAssetId(p); if(id) nameToId[getName(p)]=id; });
+  const ids=pets.map(p=>nameToId[p.name]).filter(Boolean);
+  await resolveImgs(ids);
+  pets.forEach((p,i)=>{ const id=nameToId[p.name]; const el=document.getElementById(`pci-${i}`); if(id&&el) applyImg(el,id); });
+}
+
+// ── PET MODAL ──
+async function renderPet(item){
+  const cd=item.configData||{}, name=getName(item);
+  const tags=[];
+  if(cd.indexObtainable) tags.push(`<span class="ptag ptag-green">Index Obtainable</span>`);
+  if(cd.fly) tags.push(`<span class="ptag ptag-blue">Fly</span>`);
+  if(cd.huge) tags.push(`<span class="ptag ptag-pink">Huge</span>`);
+  if(cd.titanic) tags.push(`<span class="ptag ptag-gold">Titanic</span>`);
+  if(cd.exclusive) tags.push(`<span class="ptag ptag-purple">Exclusive</span>`);
+  const world=cd.worldNumber??cd.world??null;
+  const zone=cd.zoneNumber??cd.zone??null;
+  const desc=cd.indexDesc||cd.desc||'';
+  const rarity=cd.rarity?(typeof cd.rarity==='object'?(cd.rarity.DisplayName||cd.rarity._id||cd.rarity.id||''):String(cd.rarity)):null;
+  document.getElementById('detail-wrap').className='detail-wrap';
+  document.getElementById('detail-inner').className='pet-modal';
+  document.getElementById('detail-inner').innerHTML=`
+    <div class="modal-bar">
+      <div class="modal-bar-title">${x(name)}</div>
+      <div class="modal-bar-actions"><button class="btn-icon btn-json" id="btn-json">{}</button></div>
+    </div>
+    <div class="json-panel" id="jpanel"><pre>${x(JSON.stringify(cd,null,2))}</pre></div>
+    <div class="pet-body">
+      <div class="pet-left">
+        <div class="pet-img-wrap" id="pet-img"><span style="font-size:40px;opacity:.25">?</span></div>
+        ${cd.goldenThumbnail?`<div><div class="pet-golden-label">Golden Variant</div><div class="pet-golden-img" id="pet-gold-img"><span class="ph" style="font-size:24px">?</span></div></div>`:''}
+      </div>
+      <div class="pet-right">
+        ${world!=null||zone!=null?`<div class="pet-stat-row">
+          ${world!=null?`<div class="pet-stat-box"><div class="pet-stat-label">World</div><div class="pet-stat-value">${x(String(world))}</div></div>`:''}
+          ${zone!=null?`<div class="pet-stat-box"><div class="pet-stat-label">Zone</div><div class="pet-stat-value">${x(String(zone))}</div></div>`:''}
+        </div>`:''}
+        ${tags.length?`<div class="pet-tags">${tags.join('')}</div>`:''}
+        ${desc?`<div class="pet-desc-box">"${x(desc)}"</div>`:''}
+        ${cd.cachedPower!=null||rarity?`<div class="pet-tech">
+          <div class="pet-tech-title">Technical</div>
+          ${cd.cachedPower!=null?`<div class="pet-tech-row">Power: <span>${x(String(cd.cachedPower))}</span></div>`:''}
+          ${rarity?`<div class="pet-tech-row">Rarity: <span>${x(rarity)}</span></div>`:''}
+        </div>`:''}
+        <div id="pet-exists-section"></div>
+        <div id="modal-rap-inject"></div>
+      </div>
+    </div>`;
+  bindBtns();
+  fetchImg(getAssetId(item),document.getElementById('pet-img'));
+  if(cd.goldenThumbnail){ const m=String(cd.goldenThumbnail).match(/rbxassetid:\/\/(\d+)/i); if(m) fetchImg(m[1],document.getElementById('pet-gold-img')); }
+  injectPetExists(name);
+  injectModalRAP(item.configName||name, 'Pet', 'modal-rap-inject');
+}
+
+async function injectPetExists(petName){
+  const el=document.getElementById('pet-exists-section');
+  if(!el) return;
+  const data=await getExistsData();
+  // Find all entries for this pet name
+  const entries=data.filter(d=>d.category==='Pet'&&d.configData&&d.configData.id===petName);
+  if(!entries.length) return;
+  const normal=entries.find(d=>!d.configData.pt&&!d.configData.sh);
+  const golden=entries.find(d=>d.configData.pt===1&&!d.configData.sh);
+  const rainbow=entries.find(d=>d.configData.pt===2&&!d.configData.sh);
+  const shiny=entries.find(d=>d.configData.sh&&!d.configData.pt);
+  const shinyGold=entries.find(d=>d.configData.sh&&d.configData.pt===1);
+  const shinyRainbow=entries.find(d=>d.configData.sh&&d.configData.pt===2);
+  const rows=[
+    normal?`<div class="pet-tech-row">Exist (Normal): <span>${normal.value.toLocaleString()}</span></div>`:'',
+    golden?`<div class="pet-tech-row">Exist (Golden): <span style="color:var(--gold)">${golden.value.toLocaleString()}</span></div>`:'',
+    rainbow?`<div class="pet-tech-row">Exist (Rainbow): <span style="color:var(--pink)">${rainbow.value.toLocaleString()}</span></div>`:'',
+    shiny?`<div class="pet-tech-row">Exist (Shiny): <span style="color:var(--cyan)">${shiny.value.toLocaleString()}</span></div>`:'',
+    shinyGold?`<div class="pet-tech-row">Exist (✨ Gold): <span style="color:var(--gold)">${shinyGold.value.toLocaleString()}</span></div>`:'',
+    shinyRainbow?`<div class="pet-tech-row">Exist (✨ RB): <span style="color:var(--pink)">${shinyRainbow.value.toLocaleString()}</span></div>`:'',
+  ].filter(Boolean).join('');
+  if(!rows) return;
+  el.innerHTML=`<div class="pet-tech" style="margin-top:10px"><div class="pet-tech-title">In Existence</div>${rows}</div>`;
+}
+
+// ── RANK MODAL ──
+async function renderRank(item){
+  const cd=item.configData||{}, name=getName(item);
+  document.getElementById('detail-wrap').className='detail-wrap wide';
+  document.getElementById('detail-inner').className='rank-modal';
+
+  // Helper: build a reward card element, returns HTML string, queues image fetch
+  function rewardCard(d, pendingImgs){
+    if(!d) return '';
+    const label=fmtItem(d);
+    const qty=d._am!=null?`x${d._am}`:'';
+    const tier=d.tn!=null?`Tier ${d.tn}`:'';
+    const imgId=d.id?`rank-rimg-${d.id.replace(/\s+/g,'-')}-${Math.random().toString(36).slice(2,6)}`:'';
+    if(imgId) pendingImgs.push({id:d.id, elId:imgId});
+    return `<div class="rank-reward-card">
+      ${qty?`<div class="rank-reward-qty">${x(qty)}</div>`:''}
+      <div class="rank-reward-img" id="${imgId}"><span style="font-size:18px;opacity:.2">?</span></div>
+      <div class="rank-reward-name">${x(d.id||label)}</div>
+      ${tier?`<div class="rank-reward-tier">${x(tier)}</div>`:''}
+    </div>`;
+  }
+
+  const pendingImgs=[];
+
+  // RankUp rewards grid
+  const rankupCards=(cd.RankUpRewards||[]).map(d=>rewardCard(d,pendingImgs)).join('');
+  const rankupSection=(cd.RankUpRewards||[]).length?`
+    <div class="rankup-section">
+      <div class="rankup-section-title">🎉 Rank-Up Rewards</div>
+      <div class="rank-reward-grid">${rankupCards}</div>
+    </div>`:'';
+
+  // Star reward cards grouped by star count
+  const rewardsByStars={};
+  (cd.Rewards||[]).forEach(r=>{
+    const stars=r.StarsRequired??0;
+    if(!rewardsByStars[stars]) rewardsByStars[stars]=[];
+    rewardsByStars[stars].push(r.Item?._data);
+  });
+  const starGroups=Object.keys(rewardsByStars).map(Number).sort((a,b)=>a-b);
+
+  const starsSection=starGroups.length?`
+    <div class="rank-right-section">
+      <div class="rank-right-section-title">⭐ Rewards</div>
+      ${starGroups.map(s=>{
+        const items=rewardsByStars[s];
+        const starEmoji='⭐'.repeat(Math.min(s,12))+(s>12?`<span style="font-size:10px;color:var(--text3)"> +${s-12}</span>`:'');
+        return `<div style="margin-bottom:16px">
+          <div class="rank-star-hdr">
+            <span class="rank-star-emoji">${starEmoji}</span>
+            <span class="rank-star-label">${s} Star${s!==1?'s':''}</span>
+            <div class="rank-star-divider"></div>
+          </div>
+          <div class="rank-reward-grid">${items.map(d=>rewardCard(d,pendingImgs)).join('')}</div>
+        </div>`;
+      }).join('')}
+    </div>`:'<div style="color:var(--text3);font-size:13px;padding:10px">No rewards listed</div>';
+
+  document.getElementById('detail-inner').innerHTML=`
+    <div class="modal-bar">
+      <div class="modal-bar-title">${cd.RankNumber||''} | ${x(cd.Title||name)}</div>
+      <div class="modal-bar-sub">#${cd.RankNumber||'?'}</div>
+      <div class="modal-bar-actions"><button class="btn-icon btn-json" id="btn-json">{}</button><button class="btn-icon" id="btn-close" style="background:#ef4444;color:#fff;font-weight:900;font-size:13px">X</button></div>
+    </div>
+    <div class="json-panel" id="jpanel"><pre>${x(JSON.stringify(cd,null,2))}</pre></div>
+    <div class="rank-body">
+      <div class="rank-left">
+        <div class="rank-left-title">Rank Info</div>
+        ${cd.MaxEnchantsEquipped!=null?`<div class="rank-stat"><div class="rank-stat-label">Max Enchants</div><div class="rank-stat-value">${cd.MaxEnchantsEquipped}</div></div>`:''}
+        ${cd.MaximumActiveGoals!=null?`<div class="rank-stat"><div class="rank-stat-label">Max Goals</div><div class="rank-stat-value">${cd.MaximumActiveGoals}</div></div>`:''}
+        ${cd.UnlockableEggSlots!=null?`<div class="rank-stat"><div class="rank-stat-label">Egg Slots</div><div class="rank-stat-value">${cd.UnlockableEggSlots}</div></div>`:''}
+        ${cd.UnlockablePetSlots!=null?`<div class="rank-stat"><div class="rank-stat-label">Pet Slots</div><div class="rank-stat-value">${cd.UnlockablePetSlots}</div></div>`:''}
+        ${cd.RequiredZone?`<div class="rank-stat"><div class="rank-stat-label">Req. Zone</div><div class="rank-stat-value sm">${x(cd.RequiredZone)}</div></div>`:''}
+        ${cd.RequiredRebirth!=null?`<div class="rank-stat"><div class="rank-stat-label">Req. Rebirth</div><div class="rank-stat-value">${cd.RequiredRebirth}</div></div>`:''}
+        ${(cd.Goals||[]).length?`<div class="rank-stat"><div class="rank-stat-label">Goal Pools</div><div class="rank-stat-value">${cd.Goals.length}</div></div>`:''}
+      </div>
+      <div class="rank-right">
+        ${rankupSection}
+        ${starsSection}
+      </div>
+    </div>`;
+
+  bindBtns();
+  document.getElementById('btn-close')?.addEventListener('click', closeModal);
+
+  // Resolve all reward images
+  await loadRankRewardImgs(pendingImgs);
+}
+
+// ── Shared item name → assetId map ──
+// Reward IDs like "Damage", "Coins", "Banana", "TNT" match configName in their collection.
+// We load collections in priority order so Items beats Pets for names like "Banana".
+let itemNameToAssetId = null;
+async function buildItemImgMap(){
+  if(itemNameToAssetId) return itemNameToAssetId;
+  itemNameToAssetId = {};
+  // Order matters: Items first so e.g. "Banana" (food item) wins over a pet named Banana
+  const cols = ['Items','Enchants','Potions','XPPotions','Currency','Eggs','Pets'];
+  // Load all in parallel, then apply in order so priority is respected
+  const results = await Promise.all(cols.map(async col => {
+    if(!cache[col]){
+      try{
+        const r = await fetch(API_BASE + col);
+        const j = await r.json();
+        cache[col] = j.data || [];
+      }catch(e){ cache[col] = []; }
+    }
+    return { col, data: cache[col] || [] };
+  }));
+  // Apply in order — first write wins
+  results.forEach(({ data }) => {
+    data.forEach(item => {
+      const assetId = getAssetId(item);
+      if(!assetId) return;
+      // Index by exact configName (this is what reward _data.id matches)
+      if(item.configName && !itemNameToAssetId[item.configName]){
+        itemNameToAssetId[item.configName] = assetId;
+      }
+      // Also index by display name
+      const n = getName(item);
+      if(n && !itemNameToAssetId[n]){
+        itemNameToAssetId[n] = assetId;
+      }
+    });
+  });
+  return itemNameToAssetId;
+}
+
+// Per-ID resource cache so we never double-fetch
+const resourceCache = {};
+
+async function loadRankRewardImgs(pendingImgs){
+  if(!pendingImgs.length) return;
+  const map = await buildItemImgMap();
+
+  // Collect unique IDs still missing from the map
+  const needResource = [...new Set(
+    pendingImgs.map(p => p.id).filter(id => id && !map[id])
+  )];
+
+  // Fetch from /api/resource for anything not found in collections
+  await Promise.all(needResource.map(async id => {
+    if(map[id] || resourceCache[id] === null) return; // skip known-missing
+    try{
+      const r = await fetch(`https://ps99.biggamesapi.io/api/resource/${encodeURIComponent(id)}`);
+      const j = await r.json();
+      const cd = j?.data?.configData || j?.configData || j?.data || {};
+      // Walk every possible thumbnail field the API uses
+      const raw =
+        cd.thumbnail || cd.Thumbnail ||
+        cd.image     || cd.Image     ||
+        cd.icon      || cd.Icon      ||
+        (Array.isArray(cd.Icons) && cd.Icons[0] && (cd.Icons[0].Icon || cd.Icons[0])) ||
+        (Array.isArray(cd.Tiers) && cd.Tiers[0] &&
+          (cd.Tiers[0].orbImage || cd.Tiers[0].tinyImage || cd.Tiers[0].Icon)) ||
+        '';
+      const m = raw && String(raw).match(/rbxassetid:\/\/(\d+)/i);
+      if(m){ map[id] = m[1]; resourceCache[id] = m[1]; }
+      else resourceCache[id] = null; // mark as not found
+    }catch(e){ resourceCache[id] = null; }
+  }));
+
+  // Apply all images to DOM
+  pendingImgs.forEach(({id, elId}) => {
+    const assetId = map[id];
+    const el = document.getElementById(elId);
+    if(assetId && el){
+      el.innerHTML = `<img src="${THUMB_URL(assetId)}" style="width:100%;height:100%;object-fit:contain" onerror="this.parentElement.innerHTML='<span style=\'font-size:16px;opacity:.2\'>?</span>'" />`;
+    }
+  });
+}
+
+// ── ACHIEVEMENT MODAL ──
+async function renderAchievement(item){
+  const cd=item.configData||{}, name=getName(item);
+  document.getElementById('detail-wrap').className='detail-wrap';
+  document.getElementById('detail-inner').className='ach-modal';
+  const iconId=getAssetIdFromStr(cd.Icon);
+  const tiers=cd.Tiers||[];
+  const diffClass=d=>d==='Easy'?'diff-easy':d==='Medium'?'diff-medium':'diff-hard';
+
+  const tiersHTML=tiers.map((t,i)=>{
+    const diff=t.Difficulty?.Name||'Unknown';
+    const rewards=(t.Rewards||[]).map(r=>fmtItemPill(r.Reward?._data)).join('');
+    const desc=(t.Desc||'').replace('{amount}',`<strong>${(t.Amount||0).toLocaleString()}</strong>`);
+    return `<div class="ach-tier">
+      <div class="ach-tier-hdr">
+        <span class="diff-badge ${diffClass(diff)}">${x(diff)}</span>
+        <span class="ach-tier-title">${x(t.Title||`Tier ${i+1}`)}</span>
+        ${t.Hidden?'<span style="font-size:10px;color:var(--text3);font-weight:700">🔒 Hidden</span>':''}
+      </div>
+      <div class="ach-desc">${desc}</div>
+      <div class="ach-amount">🎯 Goal: ${(t.Amount||0).toLocaleString()}</div>
+      ${rewards?`<div style="margin-top:6px"><div style="font-size:10.5px;font-weight:800;color:var(--text3);margin-bottom:6px">REWARDS</div><div class="items-wrap">${rewards}</div></div>`:''}
+    </div>`;
+  }).join('');
+
+  document.getElementById('detail-inner').innerHTML=`
+    <div class="modal-bar">
+      <div class="modal-bar-title">${x(name)}</div>
+      <div class="modal-bar-sub">${tiers.length} tier${tiers.length!==1?'s':''}</div>
+      <div class="modal-bar-actions"><button class="btn-icon btn-json" id="btn-json">{}</button></div>
+    </div>
+    <div class="json-panel" id="jpanel"><pre>${x(JSON.stringify(cd,null,2))}</pre></div>
+    <div class="ach-header">
+      <div class="ach-icon" id="ach-icon"><span style="font-size:24px;opacity:.3">🏆</span></div>
+      <div class="ach-meta">
+        <div class="ach-name">${x(cd.Name||name)}</div>
+        <div style="margin-top:6px;font-size:12px;font-weight:600;color:var(--text2)">${tiers.length} tiers · ${tiers.map(t=>t.Difficulty?.Name||'?').join(' → ')}</div>
+      </div>
+    </div>
+    ${tiersHTML}`;
+  bindBtns();
+  if(iconId) fetchImg(iconId, document.getElementById('ach-icon'));
+}
+
+// ── GUILD BATTLE MODAL ──
+async function renderGuildBattle(item){
+  const cd=item.configData||{}, name=getName(item);
+  document.getElementById('detail-wrap').className='detail-wrap';
+  document.getElementById('detail-inner').className='guild-modal';
+
+  const timeBoxes=[
+    cd.StartTime?`<div class="guild-time-box"><div class="guild-time-label">Start</div><div class="guild-time-val">${fmtUnixDate(cd.StartTime)}</div></div>`:'',
+    cd.FinishTime?`<div class="guild-time-box"><div class="guild-time-label">End</div><div class="guild-time-val">${fmtUnixDate(cd.FinishTime)}</div></div>`:'',
+  ].join('');
+
+  let rewardsHTML='';
+
+  if(cd.PlacementRewards&&cd.PlacementRewards.length){
+    // ── New format: PlacementRewards ──
+    const medals=['🥇','🥈','🥉'];
+    const placements=cd.PlacementRewards.slice().sort((a,b)=>{
+      const bucket=p=>p.BestContributor!=null?0:p.Best>1?1:2;
+      const ba=bucket(a), bb=bucket(b);
+      if(ba!==bb) return ba-bb;
+      if(ba===0) return a.BestContributor-b.BestContributor;
+      if(ba===1) return a.Best!==b.Best?a.Best-b.Best:a.Worst-b.Worst;
+      return a.Worst-b.Worst;
+    });
+    rewardsHTML=`
+      <div class="modal-body"><div class="modal-section"><div class="modal-section-title">Placement Rewards</div></div></div>
+      ${placements.map((p,i)=>{
+        const d=p.Item?._data;
+        const rankRange=p.Best===p.Worst?`#${p.Best}`:`#${p.Best}–${p.Worst}`;
+        const contrib=p.BestContributor!=null?`Contributors: #${p.BestContributor}–${p.WorstContributor||'?'}`:null;
+        return `<div class="placement-row">
+          <div class="medal">${medals[i]||'🎖️'}</div>
+          <div class="placement-rank"><span class="top">${rankRange}</span></div>
+          <div class="placement-item-name">${d?x(fmtItem(d)):'Clan Gift'}</div>
+          ${contrib?`<div class="placement-contrib">${x(contrib)}</div>`:''}
+        </div>`;
+      }).join('')}`;
+  } else if(cd.Rewards){
+    // ── Old format: Good/Bronze/Silver/Gold tiers ──
+    const tiers=[
+      {key:'Good',  emoji:'🎁', label:'Good'},
+      {key:'Bronze',emoji:'🥉', label:'Bronze'},
+      {key:'Silver',emoji:'🥈', label:'Silver'},
+      {key:'Gold',  emoji:'🥇', label:'Gold'},
+    ].filter(t=>cd.Rewards[t.key]&&cd.Rewards[t.key].length);
+    rewardsHTML=`
+      <div class="modal-body"><div class="modal-section"><div class="modal-section-title">Rewards</div></div></div>
+      ${tiers.map(t=>`
+        <div class="placement-row" style="align-items:flex-start;gap:10px">
+          <div class="medal">${t.emoji}</div>
+          <div style="flex:1">
+            <div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--text3);margin-bottom:6px">${t.label}</div>
+            <div class="items-wrap">${cd.Rewards[t.key].map(r=>fmtItemPill(r._data)).join('')}</div>
+          </div>
+        </div>`).join('')}`;
+  }
+
+  document.getElementById('detail-inner').innerHTML=`
+    <div class="modal-bar">
+      <div class="modal-bar-title">${x(cd.Title||name)}</div>
+      ${cd.HasGoals?'<div class="modal-bar-sub">Has Goals</div>':''}
+      <div class="modal-bar-actions"><button class="btn-icon btn-json" id="btn-json">{}</button></div>
+    </div>
+    <div class="json-panel" id="jpanel"><pre>${x(JSON.stringify(cd,null,2))}</pre></div>
+    <div class="guild-header">${timeBoxes}</div>
+    ${rewardsHTML}`;
+  bindBtns();
+}
+
+// ── MASTERY MODAL ──
+async function renderMastery(item){
+  const cd=item.configData||{}, name=getName(item);
+  document.getElementById('detail-wrap').className='detail-wrap';
+  document.getElementById('detail-inner').className='mastery-modal';
+  const iconId=getAssetIdFromStr(cd.Icon);
+  const perks=cd.Perks||{};
+
+  const perksHTML=Object.entries(perks).map(([perkKey,levels])=>{
+    if(!Array.isArray(levels)||!levels.length) return '';
+    const levelsHTML=levels.map(lv=>`
+      <div class="perk-level-row">
+        <span class="perk-lvl-badge">Lv ${lv.Level||'?'}</span>
+        <span class="perk-lvl-text">${x(lv.Text||lv.Title||'')}</span>
+      </div>`).join('');
+    return `<div class="perk-group">
+      <div class="perk-group-name">${x(levels[0]?.Title?.replace(/\s*(I+|[IVXLC]+)\s*$/,'').trim()||perkKey)}</div>
+      <div class="perk-levels">${levelsHTML}</div>
+    </div>`;
+  }).join('');
+
+  document.getElementById('detail-inner').innerHTML=`
+    <div class="modal-bar">
+      <div class="modal-bar-title">${x(cd.Name||name)}</div>
+      <div class="modal-bar-sub">${Object.keys(perks).length} perks</div>
+      <div class="modal-bar-actions"><button class="btn-icon btn-json" id="btn-json">{}</button></div>
+    </div>
+    <div class="json-panel" id="jpanel"><pre>${x(JSON.stringify(cd,null,2))}</pre></div>
+    <div class="mastery-header">
+      <div class="mastery-icon" id="mastery-icon"><span style="font-size:24px;opacity:.3">⭐</span></div>
+      <div>
+        <div style="font-weight:900;font-size:18px;color:var(--text)">${x(cd.Name||name)} Mastery</div>
+        ${cd.Desc?`<div class="mastery-desc">${x(cd.Desc)}</div>`:''}
+        ${cd.FFlag?`<div style="font-size:10.5px;font-weight:700;color:var(--text3);margin-top:4px">Flag: ${x(cd.FFlag)}</div>`:''}
+      </div>
+    </div>
+    <div class="modal-body">
+      <div class="modal-section">
+        <div class="modal-section-title">Perks &amp; Unlocks</div>
+      </div>
+    </div>
+    ${perksHTML}`;
+  bindBtns();
+  if(iconId) fetchImg(iconId, document.getElementById('mastery-icon'));
+}
+
+// ── POTIONS/ENCHANTS TIERS MODAL ──
+async function renderTiered(item){
+  const cd=item.configData||{}, name=getName(item);
+  document.getElementById('detail-wrap').className='detail-wrap';
+  document.getElementById('detail-inner').className='tiers-modal';
+  const tiers=cd.Tiers||[];
+  const isPotion=currentCol==='Potions';
+  const maxPow=Math.max(...tiers.map(t=>t.Power||0),1);
+
+  const tiersHTML=tiers.map((t,i)=>{
+    const rarity=t.Rarity?.DisplayName||t.Rarity?._id||getRarityByIndex(i).DisplayName||'Basic';
+    const rarC=getRarityStyle(rarity);
+    const bg=getRarityByIndex(i).Color||'#999';
+    const pct=Math.round((t.Power||0)/maxPow*100);
+    const iconId=getAssetIdFromStr(t.Icon);
+    return `<tr>
+      <td style="width:44px">${iconId?`<div style="width:36px;height:36px;border-radius:8px;background:linear-gradient(135deg,#e0f2fe,#f0f9ff);overflow:hidden;display:flex;align-items:center;justify-content:center;border:1.5px solid rgba(0,0,0,.07)"><img src="${THUMB_URL(iconId)}" style="width:100%;height:100%;object-fit:contain" onerror="this.parentElement.innerHTML=''" /></div>`:''}</td>
+      <td><span class="tier-num" style="background:${bg}">${i+1}</span></td>
+      <td style="font-weight:800">${x(t.DisplayName||`T${i+1}`)}</td>
+      <td><span class="rarity-pill" style="background:${rarC.bg};border-color:${rarC.border};color:${rarC.color}">${x(rarity)}</span></td>
+      <td>
+        <div class="power-bar-wrap">
+          <div class="power-bar" style="width:${pct}px;max-width:120px;background:${bg}"></div>
+          <span class="power-val">${t.Power!=null?t.Power+'%':'—'}</span>
+        </div>
+      </td>
+      ${isPotion?`<td class="time-val">${fmtTime(t.Time)}</td>`:''}
+      <td style="font-size:11px;color:var(--text2);max-width:200px">${x(t.Desc||'')}</td>
+    </tr>`;
+  }).join('');
+
+  document.getElementById('detail-inner').innerHTML=`
+    <div class="modal-bar">
+      <div class="modal-bar-title">${x(name)}</div>
+      <div class="modal-bar-sub">${tiers.length} tiers</div>
+      <div class="modal-bar-actions"><button class="btn-icon btn-json" id="btn-json">{}</button></div>
+    </div>
+    <div class="json-panel" id="jpanel"><pre>${x(JSON.stringify(cd,null,2))}</pre></div>
+    <div style="overflow-x:auto">
+      <table class="tier-table">
+        <thead><tr>
+          <th></th><th>#</th><th>Name</th><th>Rarity</th><th>Power</th>
+          ${isPotion?'<th>Duration</th>':''}
+          <th>Description</th>
+        </tr></thead>
+        <tbody>${tiersHTML}</tbody>
+      </table>
+    </div>
+    ${cd.EmpoweredBoost!=null?`<div style="padding:12px 20px 16px;font-size:12px;font-weight:700;color:var(--text2)">⚡ Empowered Boost: <strong style="color:var(--text)">+${cd.EmpoweredBoost}%</strong></div>`:''}
+    <div style="padding:0 20px 16px"><div id="modal-rap-inject"></div><div id="modal-exists-inject"></div></div>`;
+  bindBtns();
+  injectModalRAP(item.configName||name, currentCol, 'modal-rap-inject');
+  injectModalExists(item.configName||name, currentCol, 'modal-exists-inject');
+}
+
+// ── REBIRTH MODAL ──
+async function renderRebirth(item){
+  const cd=item.configData||{}, name=getName(item);
+  document.getElementById('detail-wrap').className='detail-wrap';
+  document.getElementById('detail-inner').className='rebirth-modal';
+  const unlocks=cd.RebirthUnlocks||[];
+
+  const unlocksHTML=unlocks.map(u=>{
+    const iconId=getAssetIdFromStr(u.Icon);
+    const elId=`ru-${Math.random().toString(36).slice(2)}`;
+    return `<div class="rebirth-unlock">
+      <div class="rebirth-unlock-icon" id="${elId}">${iconId?`<img src="${THUMB_URL(iconId)}" onerror="this.style.display='none'" />`:'<span style="font-size:18px">✨</span>'}</div>
+      <div>
+        <div class="rebirth-unlock-title">${x(u.GuiTitle||u.Title||'')}</div>
+        ${u.Desc?`<div class="rebirth-unlock-desc">${x(u.Desc)}</div>`:''}
+      </div>
+    </div>`;
+  }).join('');
+
+  document.getElementById('detail-inner').innerHTML=`
+    <div class="modal-bar">
+      <div class="modal-bar-title">${x(cd.DisplayName||name)}</div>
+      <div class="modal-bar-actions"><button class="btn-icon btn-json" id="btn-json">{}</button></div>
+    </div>
+    <div class="json-panel" id="jpanel"><pre>${x(JSON.stringify(cd,null,2))}</pre></div>
+    <div class="rebirth-header">
+      <div class="rebirth-num">${cd.RebirthNumber||'?'}</div>
+      <div>
+        <div class="rebirth-meta-title">${x(cd.DisplayName||name)}</div>
+        ${cd.BoostDesc?`<div class="rebirth-boost">🐾 ${x(cd.BoostDesc)}</div>`:''}
+        ${cd.ZoneNumberRequired!=null?`<div class="rebirth-req">Requires zone ${cd.ZoneNumberRequired}+</div>`:''}
+        ${cd.ResetZone?`<div class="rebirth-req">Resets to: ${x(cd.ResetZone)}</div>`:''}
+      </div>
+    </div>
+    <div class="modal-body">
+      <div class="modal-section">
+        <div class="modal-section-title">Unlocks (${unlocks.length})</div>
+      </div>
+    </div>
+    ${unlocksHTML}`;
+  bindBtns();
+}
+
+// ── MERCHANT MODAL ──
+async function renderMerchant(item){
+  const cd=item.configData||{}, name=getName(item);
+  document.getElementById('detail-wrap').className='detail-wrap';
+  document.getElementById('detail-inner').className='merchant-modal';
+  const slots=cd.SlotRespectLevels||[];
+  const stockRanges=cd.StockRangeByRespectLevel||[];
+  const respectLabels=['No Respect','Low','Medium','High','Very High','Max'];
+
+  const slotRows=slots.map((s,i)=>{
+    const range=stockRanges[i];
+    const rangeStr=range?` — Stock: ${range[0]}–${range[1]}`:'';
+    return `<div class="respect-row">
+      <span style="font-size:13px">🏅</span>
+      <strong>Slot ${i+1}</strong>
+      <span>Respect Lv ${s}+</span>
+      <span style="color:var(--text3)">${rangeStr}</span>
+    </div>`;
+  }).join('');
+
+  document.getElementById('detail-inner').innerHTML=`
+    <div class="modal-bar">
+      <div class="modal-bar-title">${x(cd.DisplayName||name)}</div>
+      <div class="modal-bar-actions"><button class="btn-icon btn-json" id="btn-json">{}</button></div>
+    </div>
+    <div class="json-panel" id="jpanel"><pre>${x(JSON.stringify(cd,null,2))}</pre></div>
+    <div class="merchant-body">
+      <div class="info-grid" style="margin-bottom:20px">
+        <div class="info-box"><div class="info-box-label">Machine ID</div><div class="info-box-value sm">${x(cd.MachineName||'—')}</div></div>
+        <div class="info-box"><div class="info-box-label">Refresh Rate</div><div class="info-box-value sm">${fmtTime(cd.RefreshRate)}</div></div>
+        <div class="info-box"><div class="info-box-label">Price Mult</div><div class="info-box-value">${cd.PriceMult!=null?`×${cd.PriceMult}`:'—'}</div></div>
+        <div class="info-box"><div class="info-box-label">Stock Slots</div><div class="info-box-value">${slots.length||'—'}</div></div>
+        ${cd.IsStatic!=null?`<div class="info-box"><div class="info-box-label">Static Stock</div><div class="info-box-value sm">${cd.IsStatic?'✓ Yes':'✗ No'}</div></div>`:''}
+        ${cd.HideRespect!=null?`<div class="info-box"><div class="info-box-label">Hide Respect</div><div class="info-box-value sm">${cd.HideRespect?'Yes':'No'}</div></div>`:''}
+      </div>
+      ${slotRows?`<div style="margin-top:4px"><div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--text3);margin-bottom:10px">Slot Requirements</div>${slotRows}</div>`:''}
+    </div>`;
+  bindBtns();
+}
+
+// ── CURRENCY MODAL ──
+async function renderCurrency(item){
+  const cd=item.configData||{}, name=getName(item);
+  const tiers=cd.Tiers||[];
+  const rarity=cd.Rarity?.DisplayName||cd.Rarity?._id||'Basic';
+  const tradable=cd.Tradable===true;
+  const maxAmt=cd.MaxAmount;
+  const isWorld=cd.IsWorldCurrency===true;
+
+  function fmtBig(n){
+    if(n==null) return '—';
+    if(n>=1e42) return (n/1e42).toPrecision(3).replace(/\.?0+$/,'')+'Qua';
+    if(n>=1e36) return (n/1e36).toPrecision(3).replace(/\.?0+$/,'')+'Dec';
+    if(n>=1e30) return (n/1e30).toPrecision(3).replace(/\.?0+$/,'')+'Non';
+    if(n>=1e24) return (n/1e24).toPrecision(3).replace(/\.?0+$/,'')+'Sep';
+    if(n>=1e18) return (n/1e18).toPrecision(3).replace(/\.?0+$/,'')+'Qin';
+    if(n>=1e15) return (n/1e15).toPrecision(3).replace(/\.?0+$/,'')+'Qua';
+    if(n>=1e12) return (n/1e12).toPrecision(3).replace(/\.?0+$/,'')+'T';
+    if(n>=1e9)  return (n/1e9).toPrecision(3).replace(/\.?0+$/,'')+'B';
+    if(n>=1e6)  return (n/1e6).toPrecision(3).replace(/\.?0+$/,'')+'M';
+    if(n>=1e3)  return (n/1e3).toPrecision(3).replace(/\.?0+$/,'')+'K';
+    return String(n);
+  }
+
+  // Build tier rows — each tier gets both its tinyImage and orbImage loaded
+  const tierElIds=tiers.map((_,i)=>({ tiny:`curr-tiny-${i}`, orb:`curr-orb-${i}` }));
+  const tiersHTML=tiers.map((t,i)=>{
+    const ids=tierElIds[i];
+    const val=t.value!=null?fmtBig(t.value):'—';
+    return `<tr class="currency-tier-row">
+      <td><div class="currency-tier-img" id="${ids.tiny}"><span style="font-size:16px;opacity:.2">💰</span></div></td>
+      <td><div class="currency-orb-img" id="${ids.orb}"><span style="font-size:20px;opacity:.2">🔮</span></div></td>
+      <td style="font-weight:800;font-size:13px">${x(t.tierName||`Tier ${i+1}`)}</td>
+      <td style="font-size:12px;font-weight:700;color:var(--text2)">≥ ${val}</td>
+      <td style="font-size:10px;color:var(--text3)">${t.Order!=null?`Order ${t.Order}`:''}</td>
+    </tr>`;
+  }).join('');
+
+  // Header icon from first tier tinyImage or orbImage
+  const headerImgId=tiers[0]?(getAssetIdFromStr(tiers[0].orbImage)||getAssetIdFromStr(tiers[0].tinyImage)):null;
+
+  document.getElementById('detail-wrap').className='detail-wrap';
+  document.getElementById('detail-inner').className='currency-modal';
+  document.getElementById('detail-inner').innerHTML=`
+    <div class="modal-bar">
+      <div class="modal-bar-title">${x(name)}</div>
+      <div class="modal-bar-sub">${tiers.length} tier${tiers.length!==1?'s':''}</div>
+      <div class="modal-bar-actions"><button class="btn-icon btn-json" id="btn-json">{}</button></div>
+    </div>
+    <div class="json-panel" id="jpanel"><pre>${x(JSON.stringify(cd,null,2))}</pre></div>
+    <div class="currency-header">
+      <div class="currency-icon-wrap" id="curr-hdr-img">${headerImgId?`<img src="${THUMB_URL(headerImgId)}" onerror="this.parentElement.innerHTML='<span style=\'font-size:28px;opacity:.3\'>💰</span>'" />`:'<span style="font-size:28px;opacity:.3">💰</span>'}</div>
+      <div>
+        <div class="currency-meta-name">${x(name)}</div>
+        ${cd.Desc?`<div class="currency-meta-desc">"${x(cd.Desc)}"</div>`:''}
+      </div>
+    </div>
+    <div style="padding:16px 20px">
+      <div class="info-grid" style="margin-bottom:20px">
+        <div class="info-box"><div class="info-box-label">Rarity</div><div class="info-box-value sm">${x(rarity)}</div></div>
+        <div class="info-box"><div class="info-box-label">Tradable</div><div class="info-box-value sm">${tradable?'<span style="color:#16a34a">✓ Yes</span>':'<span style="color:#dc2626">✗ No</span>'}</div></div>
+        <div class="info-box"><div class="info-box-label">Max Amount</div><div class="info-box-value sm">${fmtBig(maxAmt)}</div></div>
+        <div class="info-box"><div class="info-box-label">World Currency</div><div class="info-box-value sm">${isWorld?'<span style="color:#16a34a">✓ Yes</span>':'<span style="color:#dc2626">✗ No</span>'}</div></div>
+      </div>
+      <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--text3);margin-bottom:10px">Tiers</div>
+      <div style="overflow-x:auto">
+        <table class="tier-table">
+          <thead><tr><th>Tiny</th><th>Orb</th><th>Name</th><th>Converts At</th><th></th></tr></thead>
+          <tbody>${tiersHTML}</tbody>
+        </table>
+      </div>
+    </div>`;
+  bindBtns();
+
+  // Load all tier images
+  tiers.forEach((t,i)=>{
+    const ids=tierElIds[i];
+    const tinyId=getAssetIdFromStr(t.tinyImage);
+    const orbId=getAssetIdFromStr(t.orbImage);
+    if(tinyId){
+      const el=document.getElementById(ids.tiny);
+      if(el) el.innerHTML=`<img src="${THUMB_URL(tinyId)}" style="width:100%;height:100%;object-fit:contain" onerror="this.parentElement.innerHTML='<span style=\'font-size:14px;opacity:.2\'>💰</span>'" />`;
+    }
+    if(orbId){
+      const el=document.getElementById(ids.orb);
+      if(el) el.innerHTML=`<img src="${THUMB_URL(orbId)}" style="width:100%;height:100%;object-fit:contain" onerror="this.parentElement.innerHTML='<span style=\'font-size:18px;opacity:.2\'>🔮</span>'" />`;
+    }
+  });
+}
+
+// ── XP POTION MODAL ──
+async function renderXPPotion(item){
+  const cd=item.configData||{}, name=getName(item);
+  const rarity=cd.Rarity?.DisplayName||cd.Rarity?._id||'';
+  const rarC=getRarityStyle(rarity);
+  const iconId=getAssetIdFromStr(cd.Icon);
+  document.getElementById('detail-wrap').className='detail-wrap';
+  document.getElementById('detail-inner').className='generic-modal';
+  document.getElementById('detail-inner').innerHTML=`
+    <div class="modal-bar">
+      <div class="modal-bar-title">${x(cd.DisplayName||name)}</div>
+      ${rarity?`<div class="modal-bar-sub" style="background:${rarC.bg};border:1.5px solid ${rarC.border};color:${rarC.color};border-radius:999px;padding:3px 10px">${x(rarity)}</div>`:''}
+      <div class="modal-bar-actions"><button class="btn-icon btn-json" id="btn-json">{}</button></div>
+    </div>
+    <div class="json-panel" id="jpanel"><pre>${x(JSON.stringify(cd,null,2))}</pre></div>
+    <div class="generic-body">
+      <div class="generic-img-wrap" id="xp-icon"><span style="font-size:30px;opacity:.3">✨</span></div>
+      ${cd.Desc?`<div class="pet-desc-box" style="margin-bottom:14px">"${x(cd.Desc)}"</div>`:''}
+      <div class="g-divider"></div>
+      <div class="g-field"><span class="g-key">XP Amount</span><span class="g-val" style="font-weight:900;font-size:15px;color:var(--accent)">${cd.Amount!=null?cd.Amount.toLocaleString():' —'}</span></div>
+      ${cd.ItemId?`<div class="g-field"><span class="g-key">Item ID</span><span class="g-val">${x(cd.ItemId)}</span></div>`:''}
+      ${cd.Tradable!=null?`<div class="g-field"><span class="g-key">Tradable</span><span class="g-val">${cd.Tradable?'<span class="g-true">✓ Yes</span>':'<span class="g-false">✗ No</span>'}</span></div>`:''}
+      <div id="modal-rap-inject"></div>
+      <div id="modal-exists-inject"></div>
+    </div>`;
+  bindBtns();
+  if(iconId) fetchImg(iconId, document.getElementById('xp-icon'));
+  injectModalRAP(item.configName||name, 'XPPotion', 'modal-rap-inject');
+  injectModalExists(item.configName||name, 'XPPotion', 'modal-exists-inject');
+}
+
+// ── GENERIC MODAL ──
+async function renderGeneric(item){
+  const cd=item.configData||{}, name=getName(item);
+  const sub=currentCol+(item.category?' › '+item.category:'');
+  const skip=new Set(['thumbnail','goldenThumbnail','image','icon','Icon','Icons','mapImage','PageIcon','name','Name','DisplayName','desc','Desc','indexDesc','ShinyIcon']);
+  const rows=Object.entries(cd).filter(([k])=>!skip.has(k));
+  document.getElementById('detail-wrap').className='detail-wrap';
+  document.getElementById('detail-inner').className='generic-modal';
+  document.getElementById('detail-inner').innerHTML=`
+    <div class="modal-bar">
+      <div class="modal-bar-title">${x(name)}</div>
+      <div class="modal-bar-actions"><button class="btn-icon btn-json" id="btn-json">{}</button></div>
+    </div>
+    <div class="json-panel" id="jpanel"><pre>${x(JSON.stringify(cd,null,2))}</pre></div>
+    <div class="generic-body">
+      <div class="generic-img-wrap" id="gen-img">${getAssetId(item)?'<span style="font-size:30px;opacity:.3">?</span>':getRaritySwatchHTML(item,'100px','16px')||'<span style="font-size:30px;opacity:.3">?</span>'}</div>
+      ${(cd.Desc||cd.desc||cd.indexDesc)?`<div class="pet-desc-box" style="margin-bottom:14px">"${x(cd.Desc||cd.desc||cd.indexDesc)}"</div>`:''}
+      <div class="generic-sub">${x(sub)}</div>
+      <div class="g-divider"></div>
+      ${rows.length
+        ?rows.map(([k,v])=>`<div class="g-field"><span class="g-key">${x(k)}</span><span class="g-val">${fmtVal(v,k)}</span></div>`).join('')
+        :'<div style="color:var(--text2);text-align:center;font-size:13px;font-weight:600;padding:12px 0">No additional data</div>'}
+      <div id="modal-rap-inject"></div>
+      <div id="modal-exists-inject"></div>
+    </div>`;
+  bindBtns();
+  if(getAssetId(item)) fetchImg(getAssetId(item),document.getElementById('gen-img'));
+  else if(!getRaritySwatchHTML(item)) fetchImg(null, document.getElementById('gen-img'));
+  injectModalRAP(item.configName||name, currentCol, 'modal-rap-inject');
+  injectModalExists(item.configName||name, currentCol, 'modal-exists-inject');
+}
+
+// ── ZONE MODAL ──
+async function renderZone(item){
+  const cd=item.configData||{}, name=cd.ZoneName||getName(item);
+  document.getElementById('detail-wrap').className='detail-wrap wide';
+  document.getElementById('detail-inner').className='zone-modal';
+
+  // Load eggs collection if not cached
+  if(!cache['Eggs']){
+    try{ const r=await fetch(API_BASE+'Eggs'); const j=await r.json(); cache['Eggs']=j.data||[]; }catch{}
+  }
+  // Load pets collection if not cached
+  if(!cache['Pets']){
+    try{ const r=await fetch(API_BASE+'Pets'); const j=await r.json(); cache['Pets']=j.data||[]; }catch{}
+  }
+  // Load zones collection if not cached (needed for range lookup)
+  if(!cache['Zones']){
+    try{ const r=await fetch(API_BASE+'Zones'); const j=await r.json(); cache['Zones']=j.data||[]; }catch{}
+  }
+
+  const allEggs=cache['Eggs']||[];
+  const allPets=cache['Pets']||[];
+
+  // Build pet name → assetId map
+  const nameToId={};
+  allPets.forEach(p=>{ const id=getAssetId(p); if(id) nameToId[getName(p)]=id; });
+
+  // MaximumAvailableEgg = the eggNumber of the last egg available in this zone.
+  // To find all eggs for this zone, we find the previous zone's MaximumAvailableEgg
+  // and show eggs with eggNumber in range (prevMax+1 .. maxEgg).
+  const zoneNum=cd.ZoneNumber;
+  const worldNum=cd.WorldNumber;
+  const maxEgg=cd.MaximumAvailableEgg;
+
+  // Build egg lookup by eggNumber
+  const eggByNumber={};
+  allEggs.forEach(e=>{ const n=(e.configData||{}).eggNumber; if(n!=null) eggByNumber[n]=e; });
+
+  let zoneEggs=[];
+  if(maxEgg!=null){
+    // Find previous zone's maxEgg to determine range start.
+    // Load zones from cache if available, otherwise just show the single egg at maxEgg.
+    const allZones=cache['Zones']||[];
+    // Filter zones of the same world, sorted by ZoneNumber ascending
+    const sameWorldZones=allZones
+      .filter(z=>(z.configData||{}).WorldNumber===worldNum && (z.configData||{}).MaximumAvailableEgg!=null)
+      .sort((a,b)=>((a.configData||{}).ZoneNumber||0)-((b.configData||{}).ZoneNumber||0));
+
+    // Find the zone just before this one (by ZoneNumber) in same world
+    const thisIdx=sameWorldZones.findIndex(z=>(z.configData||{}).ZoneNumber===zoneNum);
+    let prevMax=0;
+    if(thisIdx>0){
+      prevMax=(sameWorldZones[thisIdx-1].configData||{}).MaximumAvailableEgg||0;
+    }
+
+    // Collect eggs with eggNumber in (prevMax, maxEgg] for matching world
+    for(let n=prevMax+1;n<=maxEgg;n++){
+      const egg=eggByNumber[n];
+      if(egg){
+        const ewn=(egg.configData||{}).worldNumber;
+        // Only include if worldNumber matches (or egg has no worldNumber restriction)
+        if(ewn==null||worldNum==null||ewn===worldNum) zoneEggs.push(egg);
+      }
+    }
+
+    // Fallback: if nothing found in range, just show the egg at exactly maxEgg
+    if(zoneEggs.length===0 && eggByNumber[maxEgg]){
+      zoneEggs=[eggByNumber[maxEgg]];
+    }
+  }
+
+  // Build stat fields from breakables
+  const breakKeys=Object.keys(cd.Breakables||{}).filter(k=>k!=='VIP');
+  const breakSummary=breakKeys.map(k=>{
+    const b=cd.Breakables[k];
+    const types=[...new Set((b.Data||[]).map(d=>d.Type||'?'))];
+    return `${k}: ${(b.Settings?.Maximum||'?')} max`;
+  }).join(' · ');
+
+  document.getElementById('detail-inner').innerHTML=`
+    <div class="modal-bar">
+      <div class="modal-bar-title">${x(name)}</div>
+      <div class="modal-bar-sub">Zone #${cd.ZoneNumber||'?'}</div>
+      <div class="modal-bar-actions"><button class="btn-icon btn-json" id="btn-json">{}</button></div>
+    </div>
+    <div class="json-panel" id="jpanel"><pre>${x(JSON.stringify(cd,null,2))}</pre></div>
+    <div class="zone-body">
+      <div class="zone-left">
+        <div class="zone-left-title">Zone Info</div>
+        ${cd.ZoneNumber!=null?`<div class="zone-stat"><div class="zone-stat-label">Zone #</div><div class="zone-stat-value">${cd.ZoneNumber}</div></div>`:''}
+        ${cd.WorldNumber!=null?`<div class="zone-stat"><div class="zone-stat-label">World</div><div class="zone-stat-value">${cd.WorldNumber}</div></div>`:''}
+        ${cd.Currency?`<div class="zone-stat"><div class="zone-stat-label">Currency</div><div class="zone-stat-value sm">${x(cd.Currency)}</div></div>`:''}
+        ${cd.MaximumAvailableEgg!=null?`<div class="zone-stat"><div class="zone-stat-label">Max Egg</div><div class="zone-stat-value">${cd.MaximumAvailableEgg}</div></div>`:''}
+        ${cd.TeleportToZoneOnFall?`<div class="zone-stat"><div class="zone-stat-label">Teleport on Fall</div><div class="zone-stat-value sm" style="color:#16a34a">Yes</div></div>`:''}
+        ${cd.GateHealth?`<div class="zone-stat"><div class="zone-stat-label">Gate HP</div><div class="zone-stat-value">${cd.GateHealth}</div></div>`:''}
+        ${breakSummary?`<div class="zone-stat"><div class="zone-stat-label">Breakables</div><div class="zone-stat-value sm">${x(breakSummary)}</div></div>`:''}
+      </div>
+      <div class="zone-right">
+        <div class="zone-section-title">🥚 Eggs &amp; Pets</div>
+        <div class="zone-eggs-list" id="zone-eggs-list">
+          ${zoneEggs.length
+            ? zoneEggs.map((egg,ei)=>{
+                const ecd=egg.configData||{};
+                const eName=ecd.name||getName(egg);
+                const petsRaw=ecd.pets||[];
+                const pets=[];
+                if(Array.isArray(petsRaw)){
+                  if(petsRaw.length&&Array.isArray(petsRaw[0])){ petsRaw.forEach(p=>{ if(p&&typeof p[0]==='string') pets.push({name:p[0],chance:p[1]??'?'}); }); }
+                  else{ for(let i=0;i<petsRaw.length;i+=2) if(typeof petsRaw[i]==='string') pets.push({name:petsRaw[i],chance:petsRaw[i+1]??'?'}); }
+                }
+                const cost=ecd.cost!=null?` · ${ecd.cost} ${ecd.currency||''}`.trim():'';
+                const eggImgId=`zegg-${ei}`;
+                return `<div class="zone-egg-block">
+                  <div class="zone-egg-hdr">
+                    <div class="zone-egg-icon" id="${eggImgId}"><span style="font-size:20px;opacity:.3">🥚</span></div>
+                    <div>
+                      <div class="zone-egg-name">${x(eName)}</div>
+                      <div class="zone-egg-meta">${pets.length} pet${pets.length!==1?'s':''}${cost}</div>
+                    </div>
+                  </div>
+                  <div class="zone-pets-grid">
+                    ${pets.length
+                      ? pets.map((p,pi)=>{
+                          const n=parseFloat(p.chance);
+                          const rc=n<0.01?'ultra':n<1?'rare':'';
+                          const petImgId=`zpet-${ei}-${pi}`;
+                          return `<div class="zone-pet-card">
+                            <div class="zone-pet-chance ${rc}" data-chance="${p.chance}">${fmtChance(p.chance)}</div>
+                            <div class="zone-pet-img" id="${petImgId}"><span style="font-size:16px;opacity:.25">?</span></div>
+                            <div class="zone-pet-name">${x(p.name)}</div>
+                          </div>`;
+                        }).join('')
+                      : '<div style="color:var(--text3);font-size:12px;font-weight:600;padding:6px">No pet data</div>'
+                    }
+                  </div>
+                </div>`;
+              }).join('')
+            : `<div class="zone-no-eggs">No eggs found for this zone.</div>`
+          }
+        </div>
+      </div>
+    </div>`;
+
+  bindBtns();
+
+  // Load egg icons
+  zoneEggs.forEach((egg,ei)=>{
+    const id=getAssetId(egg);
+    const el=document.getElementById(`zegg-${ei}`);
+    if(id&&el) fetchImg(id,el);
+  });
+
+  // Load pet icons
+  zoneEggs.forEach((egg,ei)=>{
+    const ecd=egg.configData||{};
+    const petsRaw=ecd.pets||[];
+    const pets=[];
+    if(Array.isArray(petsRaw)){
+      if(petsRaw.length&&Array.isArray(petsRaw[0])){ petsRaw.forEach(p=>{ if(p&&typeof p[0]==='string') pets.push({name:p[0],chance:p[1]??'?'}); }); }
+      else{ for(let i=0;i<petsRaw.length;i+=2) if(typeof petsRaw[i]==='string') pets.push({name:petsRaw[i],chance:petsRaw[i+1]??'?'}); }
+    }
+    pets.forEach((p,pi)=>{
+      const id=nameToId[p.name];
+      const el=document.getElementById(`zpet-${ei}-${pi}`);
+      if(id&&el) fetchImg(id,el);
+    });
+  });
+}
+
+// ── MODAL ROUTER ──
+async function openModal(item){
+  document.getElementById('detail-page').classList.add('open');
+  document.getElementById('detail-page').scrollTop=0;
+  const col=currentCol;
+  if(col==='Eggs')                    await renderEgg(item);
+  else if(col==='Pets')               await renderPet(item);
+  else if(col==='Currency')           await renderCurrency(item);
+  else if(col==='Ranks')              await renderRank(item);
+  else if(col==='Achievements')       await renderAchievement(item);
+  else if(col==='GuildBattles')       await renderGuildBattle(item);
+  else if(col==='Mastery')            await renderMastery(item);
+  else if(col==='Potions'||col==='Enchants') await renderTiered(item);
+  else if(col==='XPPotions')               await renderXPPotion(item);
+  else if(col==='Rebirths')           await renderRebirth(item);
+  else if(col==='Merchants')          await renderMerchant(item);
+  else if(col==='Zones')              await renderZone(item);
+  else                                await renderGeneric(item);
+}
+
+function closeModal(){ document.getElementById('detail-page').classList.remove('open'); }
+
+function fmtVal(v,key){
+  if(v===null||v===undefined) return '<span style="color:var(--text3)">—</span>';
+  if(typeof v==='boolean') return v?'<span class="g-true">✓ Yes</span>':'<span class="g-false">✗ No</span>';
+  if(typeof v==='number') return x(String(v));
+  if(typeof v==='string'){
+    if(v.startsWith('rbxassetid://')) return `<span style="color:var(--text3);font-size:10.5px">rbxassetid://${x(v.replace('rbxassetid://',''))}</span>`;
+    return x(v.length>120?v.slice(0,120)+'…':v);
+  }
+  if(typeof v==='object'&&!Array.isArray(v)&&(v._id||v.DisplayName||v.RarityNumber!=null)){
+    const label=v.DisplayName||v._id||v.id||v.name||'';
+    const num=v.RarityNumber!=null?` (#${v.RarityNumber})`:'';
+    return label?`<span style="font-weight:800">${x(label)}${num}</span>`:x(JSON.stringify(v).slice(0,60));
+  }
+  if(Array.isArray(v)){
+    if(!v.length) return '<span style="color:var(--text3)">[]</span>';
+    if(key&&/pet/i.test(key)){
+      const pairs=[];
+      if(Array.isArray(v[0])){ v.forEach(p=>{ if(p&&typeof p[0]==='string') pairs.push(`${x(p[0])} <span style="color:var(--text3);font-size:11px" data-chance="${p[1]}">(${fmtChance(p[1])})</span>`); }); }
+      else if(typeof v[0]==='string'){ for(let i=0;i<v.length;i+=2) if(typeof v[i]==='string') pairs.push(`${x(v[i])} <span style="color:var(--text3);font-size:11px" data-chance="${v[i+1]}">(${fmtChance(v[i+1])})</span>`); }
+      if(pairs.length) return `<div style="display:flex;flex-direction:column;gap:2px;text-align:right">${pairs.map(p=>`<div>${p}</div>`).join('')}</div>`;
+    }
+    if(key==='Goals'||key==='Rewards'||key==='PlacementRewards'||key==='RebirthUnlocks'||key==='RankUpRewards'){
+      return `<span style="color:var(--text3)">${v.length} entr${v.length!==1?'ies':'y'}</span>`;
+    }
+    if(key==='Tiers'||key==='tiers'){
+      return `<span style="color:var(--text3)">${v.length} tiers</span>`;
+    }
+    if(v.every(x2=>typeof x2!=='object'||x2===null)){
+      const s=v.map(x2=>x(String(x2)));
+      if(s.join(', ').length<150) return s.join(', ');
+      return s.slice(0,10).join(', ')+(v.length>10?` <span style="color:var(--text3)">+${v.length-10} more</span>`:'');
+    }
+    return v.slice(0,5).map(obj=>{
+      if(typeof obj!=='object'||obj===null) return x(String(obj));
+      return `<table class="ntable">${Object.entries(obj).slice(0,5).map(([k2,v2])=>{
+        const dv=typeof v2==='object'&&v2!==null?JSON.stringify(v2):String(v2);
+        return `<tr><td>${x(k2)}</td><td>${x(dv.length>50?dv.slice(0,50)+'…':dv)}</td></tr>`;
+      }).join('')}</table>`;
+    }).join('')+(v.length>5?`<div style="color:var(--text3);font-size:11px">+${v.length-5} more</div>`:'');
+  }
+  if(typeof v==='object'){
+    const ents=Object.entries(v).slice(0,8);
+    if(!ents.length) return '<span style="color:var(--text3)">{}</span>';
+    return `<table class="ntable">${ents.map(([k2,v2])=>{
+      const dv=typeof v2==='object'&&v2!==null?JSON.stringify(v2):String(v2);
+      return `<tr><td>${x(k2)}</td><td>${x(dv.length>60?dv.slice(0,60)+'…':dv)}</td></tr>`;
+    }).join('')}${Object.keys(v).length>8?`<tr><td colspan="2" style="color:var(--text3)">+${Object.keys(v).length-8} more</td></tr>`:''}</table>`;
+  }
+  return x(String(v));
+}
+
+function fmtPct(v){
+  const n=parseFloat(v);
+  if(isNaN(n)) return String(v);
+  if(n===0) return '0';
+  if(n>=10) return n.toFixed(2).replace(/\.?0+$/,'');
+  if(n>=1)  return n.toFixed(4).replace(/\.?0+$/,'');
+  if(n>=0.0001) return n.toFixed(6).replace(/\.?0+$/,'');
+  return n.toPrecision(3).replace(/\.?0+(e|$)/,'$1');
+}
+
+function fmtOneIn(v){
+  const n=parseFloat(v);
+  if(isNaN(n)||n<=0) return '?';
+  const ratio=100/n;
+  if(ratio<10) return `1 in ${ratio.toFixed(1).replace(/\.0$/,'')}`;
+  if(ratio<1000) return `1 in ${Math.round(ratio)}`;
+  if(ratio<1000000) return `1 in ${(ratio/1000).toFixed(1).replace(/\.0$/,'')}K`;
+  return `1 in ${(ratio/1000000).toFixed(2).replace(/\.?0+$/,'')}M`;
+}
+
+let oddsMode = 'pct'; // 'pct' or 'onein'
+
+function fmtChance(v){
+  if(oddsMode==='onein') return fmtOneIn(v);
+  return fmtPct(v)+'%';
+}
+
+function refreshChanceBadges(){
+  document.querySelectorAll('[data-chance]').forEach(el=>{
+    el.textContent=fmtChance(el.dataset.chance);
+  });
+}
+
+document.getElementById('odds-toggle').addEventListener('click',function(){
+  oddsMode = oddsMode==='pct' ? 'onein' : 'pct';
+  this.textContent = oddsMode==='onein' ? '1/N Odds' : '% Odds';
+  this.classList.toggle('active', oddsMode==='onein');
+  refreshChanceBadges();
+});
+
+document.getElementById('detail-back').addEventListener('click', closeModal);
+document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeModal(); });
+document.getElementById('search').addEventListener('input',render);
+document.getElementById('cat-filter').addEventListener('change',render);
+
+Promise.all([loadCollections(), loadRarities()]).then(() => {
+  buildTabs();
+  loadCol('Pets');
+});
+loadClanBattle();
+
+// ── EXISTS DATA ──
+let existsCache = null;
+async function getExistsData(){
+  if(existsCache) return existsCache;
+  try{
+    const r=await fetch('https://ps99.biggamesapi.io/api/exists');
+    const j=await r.json();
+    existsCache=j.data||[];
+  }catch(e){ existsCache=[]; }
+  return existsCache;
+}
+
+// ── GENERAL EXISTS INJECT (non-pet modals) ──
+async function injectModalExists(itemName, category, containerId){
+  const el=document.getElementById(containerId);
+  if(!el) return;
+  const data=await getExistsData();
+  const entries=data.filter(d=>d.configData&&d.configData.id===itemName&&(!category||d.category===category||!d.category));
+  if(!entries.length) return;
+  // For non-pets just show all entries with tier labels
+  const rows=entries.map(d=>{
+    const c=d.configData||{};
+    let label='Exists';
+    if(c.tn!=null) label=`Exists (T${c.tn})`;
+    return `<div class="rap-inline-row"><span class="rap-inline-label" style="color:var(--cyan)">${label}</span><span class="rap-inline-val" style="color:var(--cyan)">${d.value.toLocaleString()}</span></div>`;
+  }).join('');
+  if(!rows) return;
+  el.innerHTML=`<div class="rap-inline-box" style="background:rgba(34,211,238,.05);border-color:rgba(34,211,238,.2);margin-top:8px"><div class="rap-inline-title" style="color:var(--cyan)">📦 In Existence</div>${rows}</div>`;
+}
+
+async function injectGridExists(filteredItems){
+  const data=await getExistsData();
+  const normalMap={};
+  data.forEach(d=>{
+    if(!d.configData||!d.configData.id) return;
+    const key=`${d.category||''}::${d.configData.id}`;
+    // For pets: normal only (no pt, no sh, no tn)
+    if(d.category==='Pet'){
+      if(!d.configData.pt&&!d.configData.sh) normalMap[key]=d.value;
+    } else {
+      // For non-pets: sum all variants or just take the plain one
+      if(!normalMap[key]) normalMap[key]=0;
+      normalMap[key]+=d.value;
+    }
+  });
+  filteredItems.forEach((item,i)=>{
+    const name=getName(item);
+    const configName=item.configName||name;
+    const cat=item.category||currentCol||'';
+    const key=`${cat}::${configName}`;
+    const keyAlt=`${currentCol}::${configName}`;
+    const count=normalMap[key]??normalMap[keyAlt];
+    const el=document.getElementById(`exists-${i}`);
+    if(!el) return;
+    if(count!=null){
+      el.className='card-exists loaded';
+      el.textContent=`${count.toLocaleString()} exist`;
+    }
+  });
+}
+
+// ── ACTIVE CLAN BATTLE ──
+async function loadClanBattle(){
+  try{
+    const r=await fetch('https://ps99.biggamesapi.io/api/activeClanBattle');
+    const j=await r.json();
+    if(j.status!=='ok'||!j.data) return;
+    const battle=j.data;
+    const cd=battle.configData||{};
+    const banner=document.getElementById('battle-banner');
+
+    // Title
+    const title=cd.Title||battle.configName||'Unknown Battle';
+    document.getElementById('battle-title').textContent=title;
+
+    // Meta
+    const metas=[];
+    if(cd.HasGoals) metas.push('Has Goals');
+    if(cd.StartTime) metas.push(`Starts: ${fmtUnixDate(cd.StartTime)}`);
+    if(cd.FinishTime) metas.push(`Ends: ${fmtUnixDate(cd.FinishTime)}`);
+    document.getElementById('battle-meta').textContent=metas.join(' · ');
+
+    // Rewards chips
+    const rewards=cd.PlacementRewards||[];
+    if(rewards.length){
+      const top=rewards.slice(0,3);
+      document.getElementById('battle-rewards').innerHTML=top.map((p,i)=>{
+        const medals=['🥇','🥈','🥉'];
+        const range=p.Best===p.Worst?`#${p.Best}`:`#${p.Best}–${p.Worst}`;
+        const itemName=p.Item?._data?.id||'Clan Gift';
+        return `<div class="battle-reward-chip">${medals[i]||'🎖️'} <span style="color:var(--text3)">${range}</span> ${x(itemName)}</div>`;
+      }).join('');
+    }
+
+    // Time chips
+    const times=[];
+    if(cd.StartTime) times.push(`<div class="battle-time-chip">🕐 Start: ${fmtUnixDate(cd.StartTime)}</div>`);
+    if(cd.FinishTime) times.push(`<div class="battle-time-chip">🏁 End: ${fmtUnixDate(cd.FinishTime)}</div>`);
+    document.getElementById('battle-times').innerHTML=times.join('');
+
+    banner.style.display='flex';
+  }catch(e){ /* fail silently — banner stays hidden */ }
+}
+
+// ── NAV SWITCHING ──
+function showPanel(name){
+  document.getElementById('nav-collections').classList.toggle('active', name==='collections');
+  document.getElementById('nav-rap').classList.toggle('active', name==='rap');
+  document.getElementById('nav-clans').classList.toggle('active', name==='clans');
+  document.querySelector('main').style.display = name==='collections'?'':'none';
+  document.getElementById('rap-panel').style.display = name==='rap'?'':'none';
+  document.getElementById('clans-panel').style.display = name==='clans'?'':'none';
+}
+document.getElementById('nav-collections').addEventListener('click',()=>showPanel('collections'));
+document.getElementById('nav-rap').addEventListener('click',()=>{ showPanel('rap'); if(!rapLoaded) loadRap(); });
+document.getElementById('nav-clans').addEventListener('click',()=>{ showPanel('clans'); if(!clansLoaded) loadClans(); });
+
+// ── RAP ──
+let rapData=[], rapLoaded=false;
+
+// ── RAP LOOKUP HELPERS ──
+async function ensureRapData(){
+  if(rapData.length) return rapData;
+  try{
+    const r=await fetch('https://ps99.biggamesapi.io/api/rap');
+    const j=await r.json();
+    rapData=j.data||[];
+    rapLoaded=true;
+  }catch(e){}
+  return rapData;
+}
+
+function getRapEntries(itemName, category){
+  return rapData.filter(d=>{
+    const cd=d.configData||{};
+    if(cd.id!==itemName) return false;
+    if(category&&d.category&&d.category!==category) return false;
+    return true;
+  });
+}
+
+async function injectModalRAP(itemName, category, containerId){
+  const el=document.getElementById(containerId);
+  if(!el) return;
+  await ensureRapData();
+  const entries=getRapEntries(itemName, category);
+  if(!entries.length) return;
+  const normal=entries.find(d=>{ const c=d.configData||{}; return !c.pt&&!c.sh&&c.tn==null; });
+  const golden=entries.find(d=>{ const c=d.configData||{}; return c.pt===1&&!c.sh; });
+  const rainbow=entries.find(d=>{ const c=d.configData||{}; return c.pt===2&&!c.sh; });
+  const shiny=entries.find(d=>{ const c=d.configData||{}; return c.sh&&!c.pt; });
+  const tiered=entries.filter(d=>{ const c=d.configData||{}; return c.tn!=null; }).sort((a,b)=>(a.configData.tn||0)-(b.configData.tn||0));
+  const rows=[];
+  if(normal) rows.push(`<div class="rap-inline-row"><span class="rap-inline-label">RAP</span><span class="rap-inline-val">${fmtBigRAP(normal.value)}</span><span class="rap-inline-exact">${normal.value.toLocaleString()}</span></div>`);
+  if(golden) rows.push(`<div class="rap-inline-row"><span class="rap-inline-label" style="color:var(--gold)">Golden RAP</span><span class="rap-inline-val" style="color:var(--gold)">${fmtBigRAP(golden.value)}</span><span class="rap-inline-exact">${golden.value.toLocaleString()}</span></div>`);
+  if(rainbow) rows.push(`<div class="rap-inline-row"><span class="rap-inline-label" style="color:var(--pink)">Rainbow RAP</span><span class="rap-inline-val" style="color:var(--pink)">${fmtBigRAP(rainbow.value)}</span><span class="rap-inline-exact">${rainbow.value.toLocaleString()}</span></div>`);
+  if(shiny) rows.push(`<div class="rap-inline-row"><span class="rap-inline-label" style="color:var(--cyan)">Shiny RAP</span><span class="rap-inline-val" style="color:var(--cyan)">${fmtBigRAP(shiny.value)}</span><span class="rap-inline-exact">${shiny.value.toLocaleString()}</span></div>`);
+  tiered.forEach(t=>{ const tn=t.configData.tn; rows.push(`<div class="rap-inline-row"><span class="rap-inline-label">Tier ${tn} RAP</span><span class="rap-inline-val">${fmtBigRAP(t.value)}</span><span class="rap-inline-exact">${t.value.toLocaleString()}</span></div>`); });
+  if(!rows.length) return;
+  el.innerHTML=`<div class="rap-inline-box"><div class="rap-inline-title">💰 Recent Avg Price</div>${rows.join('')}</div>`;
+}
+
+function fmtBigRAP(n){
+  if(n==null||isNaN(n)) return '—';
+  if(n>=1e9) return (n/1e9).toFixed(2).replace(/\.?0+$/,'')+'B';
+  if(n>=1e6) return (n/1e6).toFixed(2).replace(/\.?0+$/,'')+'M';
+  if(n>=1e3) return (n/1e3).toFixed(1).replace(/\.?0+$/,'')+'K';
+  return n.toLocaleString();
+}
+
+async function loadRap(){
+  rapLoaded=true;
+  try{
+    const r=await fetch('https://ps99.biggamesapi.io/api/rap');
+    const j=await r.json();
+    rapData=(j.data||[]);
+    // Build cat filter
+    const cats=[...new Set(rapData.map(d=>d.category).filter(Boolean))].sort();
+    document.getElementById('rap-cat-filter').innerHTML='<option value="">All categories</option>'+cats.map(c=>`<option value="${c}">${c}</option>`).join('');
+    renderRap();
+  }catch(e){
+    document.getElementById('rap-grid').innerHTML='<div class="state-box"><div style="font-size:28px">⚠️</div><div>Failed to load RAP data.</div></div>';
+  }
+}
+
+function rapItemLabel(d){
+  if(!d) return {name:'Unknown',modifiers:[]};
+  const id=d.id||'Unknown';
+  const mods=[];
+  if(d.pt===1) mods.push('<span class="rap-modifier rap-golden">Golden</span>');
+  if(d.pt===2) mods.push('<span class="rap-modifier rap-rainbow">Rainbow</span>');
+  if(d.sh) mods.push('<span class="rap-modifier rap-shiny">Shiny</span>');
+  if(d.tn!=null) mods.push(`<span class="rap-modifier" style="background:rgba(167,139,250,.1);border:1px solid rgba(167,139,250,.3);color:var(--accent)">T${d.tn}</span>`);
+  return {name:id, modifiers:mods};
+}
+
+async function renderRap(){
+  const search=document.getElementById('rap-search').value.trim().toLowerCase();
+  const cat=document.getElementById('rap-cat-filter').value;
+  const sort=document.getElementById('rap-sort').value;
+
+  let filtered=rapData.filter(d=>{
+    const {name}=rapItemLabel(d.configData||{});
+    if(search&&!name.toLowerCase().includes(search)) return false;
+    if(cat&&d.category!==cat) return false;
+    return true;
+  });
+
+  filtered.sort((a,b)=>{
+    if(sort==='value-desc') return (b.value||0)-(a.value||0);
+    if(sort==='value-asc') return (a.value||0)-(b.value||0);
+    const na=(rapItemLabel(a.configData||{}).name||'').toLowerCase();
+    const nb=(rapItemLabel(b.configData||{}).name||'').toLowerCase();
+    return sort==='name-asc'?na.localeCompare(nb):nb.localeCompare(na);
+  });
+
+  document.getElementById('rap-count').textContent=`${filtered.length} item${filtered.length!==1?'s':''}`;
+
+  if(!filtered.length){
+    document.getElementById('rap-grid').innerHTML='<div class="state-box"><div style="font-size:28px">🔍</div><div>No items found.</div></div>';
+    return;
+  }
+
+  // Build table
+  const rows=filtered.map((d,i)=>{
+    const cd=d.configData||{};
+    const {name,modifiers}=rapItemLabel(cd);
+    const thumbId=`rap-th-${i}`;
+    // Try to get asset from our item cache
+    const assetId=getItemAssetForRap(name,d.category);
+    return `<tr>
+      <td style="width:52px"><div class="rap-thumb" id="${thumbId}">${assetId?`<img src="${THUMB_URL(assetId)}" onerror="this.parentElement.innerHTML='<span style=\\'font-size:16px;opacity:.2\\'>?</span>'" />`:'<span style="font-size:16px;opacity:.2">?</span>'}</div></td>
+      <td><div class="rap-name">${x(name)}${modifiers.join('')}</div><div class="rap-sub">${x(d.category||'')}</div></td>
+      <td><span class="rap-cat">${x(d.category||'—')}</span></td>
+      <td class="rap-val">${fmtBigRAP(d.value)}</td>
+      <td style="font-size:11px;color:var(--text3)">${d.value!=null?d.value.toLocaleString():''}</td>
+    </tr>`;
+  }).join('');
+
+  document.getElementById('rap-grid').innerHTML=`<div class="rap-table-wrap"><table class="rap-table">
+    <thead><tr><th></th><th>Name</th><th>Category</th><th>RAP</th><th>Exact</th></tr></thead>
+    <tbody>${rows}</tbody>
+  </table></div>`;
+}
+
+function getItemAssetForRap(name, category){
+  // Use existing caches
+  if(itemNameToAssetId&&itemNameToAssetId[name]) return itemNameToAssetId[name];
+  // Try pets cache
+  const petsData=cache['Pets']||[];
+  for(const p of petsData){ if(getName(p)===name||p.configName===name){ const id=getAssetId(p); if(id) return id; } }
+  // Try from category-named collection
+  const colData=cache[category]||[];
+  for(const p of colData){ if(getName(p)===name||p.configName===name){ const id=getAssetId(p); if(id) return id; } }
+  return null;
+}
+
+document.getElementById('rap-search').addEventListener('input', renderRap);
+document.getElementById('rap-cat-filter').addEventListener('change', renderRap);
+document.getElementById('rap-sort').addEventListener('change', renderRap);
+
+// ── CLANS ──
+let clansLoaded=false, clansPage=1, clansAllData=[], clansTotalCount=0, clansCurrentSort='Points';
+
+async function loadClans(reset=true){
+  clansLoaded=true;
+  if(reset){ clansPage=1; clansAllData=[]; }
+
+  try{
+    // Load total count
+    if(clansTotalCount===0){
+      const rt=await fetch('https://ps99.biggamesapi.io/api/clansTotal');
+      const jt=await rt.json();
+      clansTotalCount=jt.data||0;
+      document.getElementById('clans-total-val').textContent=clansTotalCount.toLocaleString();
+    }
+
+    const r=await fetch(`https://ps99.biggamesapi.io/api/clans?page=${clansPage}&pageSize=20&sort=${clansCurrentSort}&sortOrder=desc`);
+    const j=await r.json();
+    const newClans=j.data||[];
+    clansAllData.push(...newClans);
+    document.getElementById('clans-loaded-val').textContent=clansAllData.length;
+    renderClans();
+    document.getElementById('clans-load-more').style.display=newClans.length===20?'block':'none';
+  }catch(e){
+    document.getElementById('clans-grid').innerHTML='<div class="state-box"><div style="font-size:28px">⚠️</div><div>Failed to load clans.</div></div>';
+  }
+}
+
+function renderClans(){
+  const search=document.getElementById('clan-search').value.trim().toLowerCase();
+  const filtered=clansAllData.filter(c=>!search||c.Name.toLowerCase().includes(search));
+
+  if(!filtered.length){
+    document.getElementById('clans-grid').innerHTML='<div class="state-box"><div style="font-size:28px">🔍</div><div>No clans found.</div></div>';
+    return;
+  }
+
+  const globalOffset=clansAllData.indexOf(filtered[0]);
+  document.getElementById('clans-grid').innerHTML=filtered.map((c,i)=>{
+    const rank=clansAllData.indexOf(c)+1;
+    const iconId=getAssetIdFromStr(c.Icon);
+    const pts=c.Points!=null?`${c.Points.toLocaleString()} pts`:'';
+    const diams=c.DepositedDiamonds!=null?`💎 ${fmtBigRAP(c.DepositedDiamonds)}`:'';
+    return `<div class="clan-card" onclick="lookupClan('${x(c.Name)}')">
+      <div class="clan-icon">${iconId?`<img src="${THUMB_URL(iconId)}" onerror="this.parentElement.innerHTML='<span style=\\'font-size:20px;opacity:.3\\'>⚔️</span>'" />`:'<span style="font-size:20px;opacity:.3">⚔️</span>'}</div>
+      <div class="clan-info">
+        <div class="clan-name">${x(c.Name)}${c.CountryCode?` <span style="font-size:10px;color:var(--text3)">${x(c.CountryCode)}</span>`:''}</div>
+        <div class="clan-pts">${pts}</div>
+        <div class="clan-meta">${c.Members||0}/${c.MemberCapacity||75} members · Level ${c.GuildLevel||'?'} · ${diams}</div>
+      </div>
+      <div class="clan-rank">#${rank}</div>
+    </div>`;
+  }).join('');
+}
+
+async function lookupClan(name){
+  document.getElementById('detail-page').classList.add('open');
+  document.getElementById('detail-page').scrollTop=0;
+  document.getElementById('detail-wrap').className='detail-wrap';
+  document.getElementById('detail-inner').innerHTML=`<div class="state-box"><div class="spinner"></div><div>Loading ${x(name)}…</div></div>`;
+  try{
+    const r=await fetch(`https://ps99.biggamesapi.io/api/clan/${encodeURIComponent(name)}`);
+    const j=await r.json();
+    if(j.status!=='ok') throw new Error(j.error||'Not found');
+    renderClanDetail(j.data);
+  }catch(e){
+    document.getElementById('detail-inner').innerHTML=`<div class="state-box"><div style="font-size:28px">⚠️</div><div>Clan not found: ${x(name)}</div></div>`;
+  }
+}
+
+function renderClanDetail(clan){
+  const iconId=getAssetIdFromStr(clan.Icon);
+  const members=(clan.Members||[]).slice().sort((a,b)=>b.PermissionLevel-a.PermissionLevel);
+  const topContribs=((clan.Contribution||{}).Battle||[]).slice().sort((a,b)=>b.Points-a.Points).slice(0,10);
+
+  function permLabel(lv){
+    if(lv>=100) return '<span class="clan-member-perm perm-owner">Owner</span>';
+    if(lv>=50) return '<span class="clan-member-perm perm-officer">Officer</span>';
+    return '<span class="clan-member-perm perm-member">Member</span>';
+  }
+
+  const membersHTML=members.map(m=>`<div class="clan-member-row">
+    ${permLabel(m.PermissionLevel)}
+    <span style="font-weight:700;color:var(--text);font-size:13px">UID: ${m.UserID}</span>
+    <span style="margin-left:auto;font-size:10.5px;color:var(--text3)">Joined ${fmtUnixDate(m.JoinTime)}</span>
+  </div>`).join('');
+
+  const contribHTML=topContribs.length?topContribs.map((c,i)=>`<div class="clan-member-row">
+    <span style="font-size:11px;font-weight:700;color:var(--text3);min-width:22px">#${i+1}</span>
+    <span style="font-weight:700;color:var(--text);font-size:13px">UID: ${c.UserID}</span>
+    <span style="margin-left:auto;font-weight:800;color:var(--gold)">${c.Points!=null?c.Points.toLocaleString():''} pts</span>
+  </div>`).join(''):'<div style="color:var(--text3);padding:14px 20px;font-size:12px">No contribution data</div>';
+
+  document.getElementById('detail-inner').innerHTML=`
+    <div class="modal-bar">
+      <div class="modal-bar-title">${x(clan.Name)}</div>
+      <div class="modal-bar-sub">Level ${clan.GuildLevel||'?'}</div>
+      <div class="modal-bar-actions"><button class="btn-icon" id="btn-close" style="background:#ef4444;color:#fff;font-weight:900;font-size:13px">✕</button></div>
+    </div>
+    <div class="clan-detail-header">
+      <div class="clan-detail-icon" id="clan-det-icon">${iconId?`<img src="${THUMB_URL(iconId)}" onerror="this.parentElement.innerHTML='<span style=\\'font-size:28px;opacity:.3\\'>⚔️</span>'" />`:'<span style="font-size:28px;opacity:.3">⚔️</span>'}</div>
+      <div style="flex:1">
+        <div class="clan-detail-name">${x(clan.Name)}</div>
+        ${clan.Desc?`<div class="clan-detail-desc">"${x(clan.Desc)}"</div>`:''}
+        <div class="medal-box" style="margin-top:8px">
+          ${clan.GoldMedals?`<div class="medal-chip">🥇 ${clan.GoldMedals}</div>`:''}
+          ${clan.SilverMedals?`<div class="medal-chip">🥈 ${clan.SilverMedals}</div>`:''}
+          ${clan.BronzeMedals?`<div class="medal-chip">🥉 ${clan.BronzeMedals}</div>`:''}
+        </div>
+      </div>
+      <div style="text-align:right;flex-shrink:0">
+        ${clan.CountryCode?`<div style="font-size:13px;font-weight:700;color:var(--text2)">${x(clan.CountryCode)}</div>`:''}
+      </div>
+    </div>
+    <div style="padding:14px 20px 0">
+      <div class="info-grid" style="margin-bottom:16px">
+        <div class="info-box"><div class="info-box-label">Members</div><div class="info-box-value">${(clan.Members||[]).length}/${clan.MemberCapacity||75}</div></div>
+        <div class="info-box"><div class="info-box-label">Officers</div><div class="info-box-value sm">${(clan.Members||[]).filter(m=>m.PermissionLevel>=50&&m.PermissionLevel<100).length}/${clan.OfficerCapacity||10}</div></div>
+        <div class="info-box"><div class="info-box-label">Guild Level</div><div class="info-box-value">${clan.GuildLevel||'—'}</div></div>
+        <div class="info-box"><div class="info-box-label">Diamonds</div><div class="info-box-value sm">${clan.DepositedDiamonds!=null?fmtBigRAP(clan.DepositedDiamonds):'—'}</div></div>
+      </div>
+      <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--text3);margin-bottom:8px">Top Battle Contributors</div>
+    </div>
+    ${contribHTML}
+    <div style="padding:14px 20px 0">
+      <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--text3);margin-bottom:8px">Members (${(clan.Members||[]).length})</div>
+    </div>
+    ${membersHTML}`;
+  document.getElementById('btn-close')?.addEventListener('click', closeModal);
+}
+
+document.getElementById('clan-search').addEventListener('input', renderClans);
+document.getElementById('clan-sort').addEventListener('change', function(){
+  clansCurrentSort=this.value;
+  loadClans(true);
+});
+document.getElementById('clans-load-more').addEventListener('click', ()=>{ clansPage++; loadClans(false); });
+document.getElementById('clan-lookup-btn').addEventListener('click', ()=>{
+  const v=document.getElementById('clan-search').value.trim();
+  if(v) lookupClan(v);
+});
+</script>
+</body>
+</html>
